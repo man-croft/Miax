@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount, useBalance } from 'wagmi';
 import { CONTRACTS } from '@/config/contracts';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import { useFaucet } from '@/hooks/useContract';
 
 export default function FaucetPage() {

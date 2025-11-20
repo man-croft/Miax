@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAccount, useContractRead } from 'wagmi';
-import { Navbar } from '@/components/Navbar';
+import Navbar from '@/components/Navbar';
 import { CONTRACTS } from '@/config/contracts';
 import { formatEther } from 'viem';
 

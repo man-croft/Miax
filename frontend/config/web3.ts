@@ -1,5 +1,5 @@
 import { http, createConfig } from 'wagmi';
-import { celoAlfajores, celo } from 'wagmi/chains';
+import { celoSepolia, celo } from 'wagmi/chains';
 import { injected, walletConnect } from 'wagmi/connectors';
 import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 
@@ -7,9 +7,9 @@ import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 export const config = getDefaultConfig({
   appName: 'Celo Knowledge Quest',
   projectId: process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'YOUR_PROJECT_ID',
-  chains: [celoAlfajores, celo],
+  chains: [celoSepolia, celo],
   transports: {
-    [celoAlfajores.id]: http(),
+    [celoSepolia.id]: http('https://rpc.ankr.com/celo_sepolia'),
     [celo.id]: http(),
   },
 });
