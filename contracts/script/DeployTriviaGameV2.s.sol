@@ -5,9 +5,6 @@ import "forge-std/Script.sol";
 import "../src/TriviaGameV2.sol";
 
 contract DeployTriviaGameV2 is Script {
-    // Celo Alfajores Testnet Addresses
-    address constant CUSD_TOKEN = 0x765DE816845861e75A25fCA122bb6898B8B1282a;
-    
     // Chainlink VRF Coordinator for Celo Alfajores
     // Note: You'll need to get the actual VRF coordinator address for Celo
     // For now, using a placeholder - UPDATE THIS!
@@ -21,9 +18,8 @@ contract DeployTriviaGameV2 is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        // Deploy TriviaGameV2
-        TriviaGameV2 triviaGame = new TriviaGameV2(
-            CUSD_TOKEN,
+        // Deploy TriviaGameV2 (rewards in native CELO)
+        TriviaGameV2 triviaGame = new TriviaGameV2{value: 0}(
             VRF_COORDINATOR,
             SUBSCRIPTION_ID,
             KEY_HASH
@@ -35,20 +31,23 @@ contract DeployTriviaGameV2 is Script {
         console.log("Contract Address:", address(triviaGame));
         console.log("");
         console.log("Game Parameters:");
-        console.log("- Play Fee: 0.1 cUSD");
+        console.log("- Play Fee: FREE");
+        console.log("- Rewards: Native CELO");
         console.log("- Questions Per Session: 10");
         console.log("- Time Limit: 5 minutes");
-        console.log("- Points Per Correct: 10");
-        console.log("- Max Speed Bonus: 5 points");
+        console.log("- Reward Per Correct: 0.01 CELO");
+        console.log("- Perfect Bonus: 0.05 CELO");
+        console.log("- Max Speed Bonus: 0.02 CELO");
         console.log("- Leaderboard Size: Top 100");
-        console.log("- Reward Distribution: Weekly");
+        console.log("- Weekly Rewards: Top 10");
         console.log("===========================================");
         console.log("");
         console.log("Next steps:");
         console.log("1. Add contract to VRF subscription");
-        console.log("2. Add questions (minimum 10)");
-        console.log("3. Players register usernames");
-        console.log("4. Players start playing!");
+        console.log("2. Fund contract with CELO for rewards");
+        console.log("3. Add questions (minimum 10)");
+        console.log("4. Players register usernames");
+        console.log("5. Players start playing and earning CELO!");
         console.log("===========================================");
 
         vm.stopBroadcast();

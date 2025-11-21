@@ -1,0 +1,57 @@
+Compiling 26 files with Solc 0.8.24
+Solc 0.8.24 finished in 45.95s
+Compiler run successful!
+Script ran successfully.
+
+== Logs ==
+  ===========================================
+  Deploying TriviaGameV2 to Celo Sepolia...
+  ===========================================
+  WARNING: Using placeholder VRF values
+  VRF functionality will NOT work until configured
+  
+  Contract Address: 0xb3aB1F9273c9fe4E091ec57301DbBdf2B0F1cc68
+  
+  Game Parameters:
+  - Play Fee: FREE
+  - Rewards: Native CELO
+  - Questions Per Session: 10
+  - Time Limit: 5 minutes
+  - Reward Per Correct: 0.01 CELO
+  - Perfect Bonus: 0.05 CELO
+  - Max Speed Bonus: 0.02 CELO
+  ===========================================
+  
+  IMPORTANT NEXT STEPS:
+  1. Fund contract with CELO:
+     cast send 0xb3aB1F9273c9fe4E091ec57301DbBdf2B0F1cc68 --value 10ether
+  
+  2. Configure Chainlink VRF (when available)
+  
+  3. Add questions:
+     forge script script/AddQuestions.s.sol --broadcast
+  ===========================================
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11142220
+
+Estimated gas price: 25.001 gwei
+
+Estimated total gas used for script: 5510722
+
+Estimated amount required: 0.137773560722 CELO
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /home/debby/Desktop/DEBY/Hacks/Zali/contracts/broadcast/DeployTriviaGameV2Test.s.sol/11142220/run-latest.json
+
+Sensitive values saved to: /home/debby/Desktop/DEBY/Hacks/Zali/contracts/cache/DeployTriviaGameV2Test.s.sol/11142220/run-latest.json
+

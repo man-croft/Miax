@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
@@ -10,9 +9,9 @@ import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.s
 /**
  * @title TriviaGameV2
  * @dev Continuous trivia game with leaderboard, username registration, and Chainlink VRF
+ * Rewards paid in native CELO
  */
 contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
-    IERC20 public cUSDToken;
     VRFCoordinatorV2Interface public vrfCoordinator;
     
     // Chainlink VRF Configuration
@@ -28,10 +27,10 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     uint256 public constant POINTS_PER_CORRECT_ANSWER = 10;
     uint256 public constant SPEED_BONUS_MAX = 5; // Max 5 bonus points for speed
     
-    // Rewards (in CELO/cUSD)
-    uint256 public constant REWARD_PER_CORRECT_ANSWER = 0.01 * 10**18; // 0.01 cUSD per correct answer
-    uint256 public constant PERFECT_SCORE_BONUS = 0.05 * 10**18; // 0.05 cUSD bonus for 10/10
-    uint256 public constant SPEED_BONUS_REWARD = 0.02 * 10**18; // Up to 0.02 cUSD for speed
+    // Rewards (in native CELO)
+    uint256 public constant REWARD_PER_CORRECT_ANSWER = 0.01 * 10**18; // 0.01 CELO per correct answer
+    uint256 public constant PERFECT_SCORE_BONUS = 0.05 * 10**18; // 0.05 CELO bonus for 10/10
+    uint256 public constant SPEED_BONUS_REWARD = 0.02 * 10**18; // Up to 0.02 CELO for speed
     
     // Leaderboard & Weekly Rewards
     uint256 public constant LEADERBOARD_SIZE = 100; // Top 100 players
@@ -64,9 +63,11 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         uint8[] answers;
         uint8 correctCount;
         uint256 score; // Includes speed bonus
+        uint256 reward; // Claimable reward amount
         uint256 startTime;
         uint256 endTime;
         bool completed;
+        bool rewardClaimed;
     }
     
     // Storage
@@ -74,6 +75,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     mapping(address => Player) public players;
     mapping(string => address) public usernameToAddress;
     mapping(address => GameSession[]) public playerSessions;
+    mapping(address => uint256) public pendingRewards; // Unclaimed rewards
     
     // Leaderboard (sorted by total score)
     address[] public leaderboard;
@@ -88,20 +90,18 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     event UsernameUpdated(address indexed player, string oldUsername, string newUsername);
     event GameStarted(address indexed player, uint256 sessionId, uint256 requestId);
     event QuestionsAssigned(address indexed player, uint256 sessionId, uint256[] questionIds);
-    event GameCompleted(address indexed player, uint256 sessionId, uint256 score, uint8 correctCount);
+    event GameCompleted(address indexed player, uint256 sessionId, uint256 score, uint8 correctCount, uint256 reward);
+    event RewardClaimed(address indexed player, uint256 amount);
     event LeaderboardUpdated(address indexed player, uint256 newRank, uint256 totalScore);
-    event RewardsDistributed(uint256 totalAmount, uint256 timestamp);
+    event WeeklyRewardsDistributed(uint256 totalAmount, uint256 timestamp);
     
     constructor(
-        address _cUSDTokenAddress,
         address _vrfCoordinator,
         uint64 _subscriptionId,
         bytes32 _keyHash
-    ) Ownable(msg.sender) VRFConsumerBaseV2(_vrfCoordinator) {
-        require(_cUSDTokenAddress != address(0), "Invalid cUSD address");
+    ) Ownable(msg.sender) VRFConsumerBaseV2(_vrfCoordinator) payable {
         require(_vrfCoordinator != address(0), "Invalid VRF coordinator");
         
-        cUSDToken = IERC20(_cUSDTokenAddress);
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
         subscriptionId = _subscriptionId;
         keyHash = _keyHash;
@@ -127,19 +127,14 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Update username (costs 0.01 cUSD to prevent spam)
+     * @dev Update username (costs 0.01 CELO to prevent spam)
      */
-    function updateUsername(string memory _newUsername) external nonReentrant {
+    function updateUsername(string memory _newUsername) external payable nonReentrant {
         require(players[msg.sender].isRegistered, "Not registered");
         require(bytes(_newUsername).length >= 3 && bytes(_newUsername).length <= 20, "Username must be 3-20 characters");
         require(usernameToAddress[_newUsername] == address(0), "Username already taken");
         require(_isValidUsername(_newUsername), "Invalid username format");
-        
-        // Charge small fee to prevent spam
-        require(
-            cUSDToken.transferFrom(msg.sender, address(this), 0.01 * 10**18),
-            "Fee payment failed"
-        );
+        require(msg.value >= 0.01 * 10**18, "Insufficient fee");
         
         string memory oldUsername = players[msg.sender].username;
         delete usernameToAddress[oldUsername];
@@ -147,7 +142,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         players[msg.sender].username = _newUsername;
         usernameToAddress[_newUsername] = msg.sender;
         
-        rewardPool += 0.01 * 10**18; // Add fee to reward pool
+        weeklyRewardPool += msg.value; // Add fee to weekly reward pool
         
         emit UsernameUpdated(msg.sender, oldUsername, _newUsername);
     }
@@ -264,9 +259,11 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
             answers: new uint8[](0),
             correctCount: 0,
             score: 0,
+            reward: 0,
             startTime: block.timestamp,
             endTime: 0,
-            completed: false
+            completed: false,
+            rewardClaimed: false
         }));
         
         players[msg.sender].lastPlayedTime = block.timestamp;
@@ -363,8 +360,10 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         session.answers = _answers;
         session.correctCount = correctCount;
         session.score = totalScore;
+        session.reward = reward;
         session.endTime = block.timestamp;
         session.completed = true;
+        session.rewardClaimed = false;
         
         // Update player stats
         Player storage player = players[msg.sender];
@@ -377,15 +376,15 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
             player.bestScore = totalScore;
         }
         
-        // Pay instant reward to player
+        // Add reward to pending (claimable)
         if (reward > 0) {
-            require(cUSDToken.transfer(msg.sender, reward), "Reward transfer failed");
+            pendingRewards[msg.sender] += reward;
         }
         
         // Update leaderboard
         _updateLeaderboard(msg.sender);
         
-        emit GameCompleted(msg.sender, _sessionId, totalScore, correctCount);
+        emit GameCompleted(msg.sender, _sessionId, totalScore, correctCount, reward);
     }
     
     /**
@@ -416,6 +415,50 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         uint256 speedReward = (_speedBonus * SPEED_BONUS_REWARD) / SPEED_BONUS_MAX;
         
         return baseReward + perfectBonus + speedReward;
+    }
+    
+    /**
+     * @dev Claim all pending rewards (in CELO)
+     */
+    function claimRewards() external nonReentrant {
+        uint256 amount = pendingRewards[msg.sender];
+        require(amount > 0, "No rewards to claim");
+        
+        pendingRewards[msg.sender] = 0;
+        
+        (bool success, ) = payable(msg.sender).call{value: amount}("");
+        require(success, "Transfer failed");
+        
+        emit RewardClaimed(msg.sender, amount);
+    }
+    
+    /**
+     * @dev Claim rewards from specific sessions (in CELO)
+     */
+    function claimSessionRewards(uint256[] calldata _sessionIds) external nonReentrant {
+        uint256 totalReward = 0;
+        
+        for (uint256 i = 0; i < _sessionIds.length; i++) {
+            uint256 sessionId = _sessionIds[i];
+            require(sessionId < playerSessions[msg.sender].length, "Invalid session");
+            
+            GameSession storage session = playerSessions[msg.sender][sessionId];
+            require(session.completed, "Session not completed");
+            require(!session.rewardClaimed, "Reward already claimed");
+            
+            session.rewardClaimed = true;
+            totalReward += session.reward;
+        }
+        
+        require(totalReward > 0, "No rewards to claim");
+        
+        // Deduct from pending
+        pendingRewards[msg.sender] -= totalReward;
+        
+        (bool success, ) = payable(msg.sender).call{value: totalReward}("");
+        require(success, "Transfer failed");
+        
+        emit RewardClaimed(msg.sender, totalReward);
     }
     
     // ============ LEADERBOARD ============
@@ -463,14 +506,11 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Fund the contract with cUSD for rewards (owner only)
+     * @dev Fund the contract with CELO for rewards (owner only)
      */
-    function fundRewards(uint256 _amount) external onlyOwner {
-        require(
-            cUSDToken.transferFrom(msg.sender, address(this), _amount),
-            "Transfer failed"
-        );
-        weeklyRewardPool += _amount;
+    function fundRewards() external payable onlyOwner {
+        require(msg.value > 0, "Must send CELO");
+        weeklyRewardPool += msg.value;
     }
     
     /**
@@ -507,27 +547,37 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
                 reward = (totalRewards * percentages[i]) / 1000;
             }
             
-            cUSDToken.transfer(leaderboard[i], reward);
+            (bool success, ) = payable(leaderboard[i]).call{value: reward}("");
+            require(success, "Transfer failed");
         }
         
         weeklyRewardPool = 0;
         lastRewardDistribution = block.timestamp;
         
-        emit RewardsDistributed(totalRewards, block.timestamp);
+        emit WeeklyRewardsDistributed(totalRewards, block.timestamp);
     }
     
     /**
      * @dev Get contract balance (for monitoring)
      */
     function getContractBalance() external view returns (uint256) {
-        return cUSDToken.balanceOf(address(this));
+        return address(this).balance;
     }
     
     /**
      * @dev Emergency withdraw (owner only)
      */
     function emergencyWithdraw(uint256 _amount) external onlyOwner {
-        require(cUSDToken.transfer(owner(), _amount), "Transfer failed");
+        require(_amount <= address(this).balance, "Insufficient balance");
+        (bool success, ) = payable(owner()).call{value: _amount}("");
+        require(success, "Transfer failed");
+    }
+    
+    /**
+     * @dev Receive CELO
+     */
+    receive() external payable {
+        weeklyRewardPool += msg.value;
     }
     
     // ============ HELPER FUNCTIONS ============
@@ -600,9 +650,11 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         uint8[] memory answers,
         uint8 correctCount,
         uint256 score,
+        uint256 reward,
         uint256 startTime,
         uint256 endTime,
-        bool completed
+        bool completed,
+        bool rewardClaimed
     ) {
         require(_sessionId < playerSessions[_player].length, "Invalid session");
         GameSession storage session = playerSessions[_player][_sessionId];
@@ -612,9 +664,11 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
             session.answers,
             session.correctCount,
             session.score,
+            session.reward,
             session.startTime,
             session.endTime,
-            session.completed
+            session.completed,
+            session.rewardClaimed
         );
     }
     
@@ -648,5 +702,33 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     
     function getPlayerSessionCount(address _player) external view returns (uint256) {
         return playerSessions[_player].length;
+    }
+    
+    function getPendingRewards(address _player) external view returns (uint256) {
+        return pendingRewards[_player];
+    }
+    
+    function getUnclaimedSessions(address _player) external view returns (uint256[] memory) {
+        uint256 count = 0;
+        
+        // Count unclaimed sessions
+        for (uint256 i = 0; i < playerSessions[_player].length; i++) {
+            if (playerSessions[_player][i].completed && !playerSessions[_player][i].rewardClaimed) {
+                count++;
+            }
+        }
+        
+        // Build array of unclaimed session IDs
+        uint256[] memory unclaimedIds = new uint256[](count);
+        uint256 index = 0;
+        
+        for (uint256 i = 0; i < playerSessions[_player].length; i++) {
+            if (playerSessions[_player][i].completed && !playerSessions[_player][i].rewardClaimed) {
+                unclaimedIds[index] = i;
+                index++;
+            }
+        }
+        
+        return unclaimedIds;
     }
 }

@@ -1,0 +1,83 @@
+Compiling 2 files with Solc 0.8.24
+Solc 0.8.24 finished in 20.33s
+Compiler run successful!
+Script ran successfully.
+
+== Logs ==
+  ===========================================
+  Deploying TriviaGameV2 with Mock VRF...
+  ===========================================
+  
+  Step 1: Deploying Mock VRF Coordinator...
+  Mock VRF Coordinator: 0x499BABaB30D2820EaF1814ce74cbDd50cb2ecCC9
+  
+  Step 2: Deploying TriviaGameV2...
+  TriviaGameV2 deployed: 0xc4AE01295cfAE3DA96b044F1a4284A93837a644C
+  
+  ===========================================
+  DEPLOYMENT COMPLETE!
+  ===========================================
+  
+  Contract Addresses:
+  -------------------
+  Mock VRF Coordinator: 0x499BABaB30D2820EaF1814ce74cbDd50cb2ecCC9
+  TriviaGameV2: 0xc4AE01295cfAE3DA96b044F1a4284A93837a644C
+  
+  Game Parameters:
+  - Play Fee: FREE
+  - Rewards: Native CELO
+  - Questions Per Session: 10
+  - Time Limit: 5 minutes
+  - Reward Per Correct: 0.01 CELO
+  - Perfect Bonus: 0.05 CELO
+  - Max Speed Bonus: 0.02 CELO
+  - Leaderboard Size: Top 100
+  - Weekly Rewards: Top 10
+  
+  ===========================================
+  IMPORTANT NOTES:
+  ===========================================
+  1. Using MOCK VRF (pseudo-random)
+  2. Random numbers generated using block data
+  3. When Chainlink VRF is available on Celo:
+     - Deploy new TriviaGameV2 with real VRF
+     - Or upgrade to use real VRF coordinator
+  
+  NEXT STEPS:
+  ===========================================
+  1. Fund contract with CELO:
+     cast send 0xc4AE01295cfAE3DA96b044F1a4284A93837a644C --value 10ether
+  
+  2. Add questions (minimum 10):
+     forge script script/AddQuestions.s.sol --broadcast
+  
+  3. Test the game:
+     - Register username
+     - Start game (VRF will work with mock)
+     - Answer questions
+     - Claim rewards
+  ===========================================
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 11142220
+
+Estimated gas price: 25.001 gwei
+
+Estimated total gas used for script: 5814063
+
+Estimated amount required: 0.145357389063 CELO
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /home/debby/Desktop/DEBY/Hacks/Zali/contracts/broadcast/DeployWithMockVRF.s.sol/11142220/run-latest.json
+
+Sensitive values saved to: /home/debby/Desktop/DEBY/Hacks/Zali/contracts/cache/DeployWithMockVRF.s.sol/11142220/run-latest.json
+
