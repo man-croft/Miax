@@ -1,133 +1,118 @@
-// Contract ABIs
-const TRIVIA_GAME_ABI = [
-  {
-    "type": "function",
-    "name": "joinGame",
-    "inputs": [{"name": "gameId", "type": "uint256"}],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getGameState",
-    "inputs": [{"name": "gameId", "type": "uint256"}],
-    "outputs": [{"name": "", "type": "uint8"}],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getGamePrizePool",
-    "inputs": [{"name": "gameId", "type": "uint256"}],
-    "outputs": [{"name": "", "type": "uint256"}],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getPlayers",
-    "inputs": [{"name": "gameId", "type": "uint256"}],
-    "outputs": [{"name": "", "type": "address[]"}],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "games",
-    "inputs": [{"name": "", "type": "uint256"}],
-    "outputs": [
-      {"name": "id", "type": "uint256"},
-      {"name": "title", "type": "string"},
-      {"name": "entryFee", "type": "uint256"},
-      {"name": "prizePool", "type": "uint256"},
-      {"name": "maxPlayers", "type": "uint256"},
-      {"name": "startTime", "type": "uint256"},
-      {"name": "endTime", "type": "uint256"},
-      {"name": "state", "type": "uint8"}
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "event",
-    "name": "PlayerJoined",
-    "inputs": [
-      {"name": "gameId", "type": "uint256", "indexed": true},
-      {"name": "player", "type": "address", "indexed": false}
-    ]
-  }
-] as const;
-
-const FAUCET_ABI = [
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "_token",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
-  },
-  {
-    "inputs": [],
-    "name": "claim",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "owner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "token",
-    "outputs": [
-      {
-        "internalType": "contract IERC20",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdraw",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
+import TriviaGameV2ABI from './TriviaGameV2ABI.json';
 
 // Contract addresses
 export const CONTRACTS = {
-  triviaGame: {
-    address: (process.env.NEXT_PUBLIC_TRIVIA_GAME_ADDRESS || '0x90c9ba691da6a027bf8cc173ea5171c29b3f3673') as `0x${string}`,
-    abi: TRIVIA_GAME_ABI,
+  triviaGameV2: {
+    address: (process.env.NEXT_PUBLIC_TRIVIA_GAME_V2_ADDRESS || '0xc4AE01295cfAE3DA96b044F1a4284A93837a644C') as `0x${string}`,
+    abi: TriviaGameV2ABI,
+  },
+  mockVRF: {
+    address: (process.env.NEXT_PUBLIC_MOCK_VRF_ADDRESS || '0x499BABaB30D2820EaF1814ce74cbDd50cb2ecCC9') as `0x${string}`,
   },
   faucet: {
     address: (process.env.NEXT_PUBLIC_FAUCET_ADDRESS || '0x707ECcbbFa9073F1e5A5675F22473956FE36FC8d') as `0x${string}`,
-    abi: FAUCET_ABI,
+    abi: [
+      {
+        "inputs": [{"internalType": "address", "name": "_token", "type": "address"}],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "inputs": [],
+        "name": "claim",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [{"internalType": "address", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "token",
+        "outputs": [{"internalType": "contract IERC20", "name": "", "type": "address"}],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "withdraw",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ],
   },
   cUSD: {
     address: '0x765DE816845861e75A25fCA122bb6898B8B1282a' as `0x${string}`,
-    abi: [], // Add cUSD ABI if needed
+    abi: [
+      {
+        "constant": true,
+        "inputs": [{"name": "_owner", "type": "address"}],
+        "name": "balanceOf",
+        "outputs": [{"name": "balance", "type": "uint256"}],
+        "type": "function"
+      },
+      {
+        "constant": false,
+        "inputs": [
+          {"name": "_spender", "type": "address"},
+          {"name": "_value", "type": "uint256"}
+        ],
+        "name": "approve",
+        "outputs": [{"name": "", "type": "bool"}],
+        "type": "function"
+      },
+      {
+        "constant": true,
+        "inputs": [
+          {"name": "_owner", "type": "address"},
+          {"name": "_spender", "type": "address"}
+        ],
+        "name": "allowance",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+      }
+    ],
   },
 } as const;
 
-// Game state enum
-export enum GameState {
-  Open = 0,
-  InProgress = 1,
-  Completed = 2,
-  Cancelled = 3
-}
+// Game constants
+export const GAME_CONSTANTS = {
+  QUESTIONS_PER_SESSION: 10,
+  TIME_LIMIT: 300, // 5 minutes in seconds
+  REWARD_PER_CORRECT: 0.01, // CELO
+  PERFECT_SCORE_BONUS: 0.05, // CELO
+  MAX_SPEED_BONUS: 0.02, // CELO
+  MAX_REWARD_PER_GAME: 0.17, // CELO
+  LEADERBOARD_SIZE: 100,
+} as const;
+
+// Question categories
+export const CATEGORIES = [
+  'Basics',
+  'Stablecoins',
+  'Technology',
+  'Mission',
+  'Features',
+  'Ecosystem',
+  'Tokens',
+  'Development',
+  'Blockchain',
+  'Crypto',
+  'Security',
+  'DeFi',
+  'Tools',
+  'Governance',
+  'Staking',
+  'Sustainability',
+  'Trading',
+  'Best Practices',
+  'Compliance',
+] as const;
+
+export type Category = typeof CATEGORIES[number];
