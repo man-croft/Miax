@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useTriviaGame, useAutoFaucet } from '@/hooks/useContract';
-import { formatEther } from 'viem';
-import { GameState } from '@/config/contracts';
+import { formatEther, parseEther } from 'viem';
+import { GameState, CONTRACTS } from '@/config/contracts';
+import { useContractWrite, useWaitForTransactionReceipt } from 'wagmi';
 
 export default function PlayPage() {
   const { address } = useAccount();
@@ -25,6 +26,8 @@ export default function PlayPage() {
     joinGame,
     joinIsLoading,
     joinIsSuccess,
+    joinIsError,
+    joinError,
   } = useTriviaGame(GAME_ID);
   
   const { 
@@ -35,13 +38,51 @@ export default function PlayPage() {
     claimIsLoading 
   } = useAutoFaucet();
   
+  // cUSD Approval
+  const { 
+    write: approveCUSD, 
+    data: approvalData,
+    isLoading: approvalIsLoading,
+  } = useContractWrite({
+    address: CONTRACTS.cUSD.address,
+    abi: [
+      {
+        name: 'approve',
+        type: 'function',
+        stateMutability: 'nonpayable',
+        inputs: [
+          { name: 'spender', type: 'address' },
+          { name: 'amount', type: 'uint256' },
+        ],
+        outputs: [{ name: '', type: 'bool' }],
+      },
+    ],
+    functionName: 'approve',
+  });
+  
+  const { isSuccess: approvalIsSuccess } = useWaitForTransactionReceipt({
+    hash: approvalData?.hash,
+  });
+  
   // Handle join success
   useEffect(() => {
-    if (joinIsSuccess && !isJoining) {
+    if (joinIsSuccess && isJoining) {
+      toast.dismiss(); // Dismiss loading toast
       toast.success('Successfully joined the game!');
+      setIsJoining(false);
       router.push(`/play/game?gameId=${GAME_ID}`);
     }
   }, [joinIsSuccess, router, isJoining, GAME_ID]);
+
+  // Handle join error
+  useEffect(() => {
+    if (joinIsError && isJoining) {
+      toast.dismiss();
+      const errorMessage = joinError?.message || 'Failed to join game';
+      toast.error(errorMessage.includes('User rejected') ? 'Transaction cancelled' : 'Failed to join game. Please try again.');
+      setIsJoining(false);
+    }
+  }, [joinIsError, joinError, isJoining]);
 
   const handleStartPlaying = async () => {
     if (!address) {
@@ -49,43 +90,108 @@ export default function PlayPage() {
       return;
     }
 
+    // Check if already joined
+    if (hasJoined) {
+      toast.success('You\'ve already joined! Starting game...');
+      router.push(`/play/game?gameId=${GAME_ID}`);
+      return;
+    }
+
     setIsJoining(true);
 
     try {
-      // Check if already joined
-      if (hasJoined) {
-        toast.success('You\'ve already joined! Starting game...');
-        router.push(`/play/game?gameId=${GAME_ID}`);
-        return;
-      }
-
       // Auto-claim from faucet if needed
       if (needsClaim && !hasClaimed) {
-        toast.loading('Getting you some cUSD from faucet...');
-        const claimed = await autoClaimIfNeeded();
-        if (claimed) {
-          toast.success('Received 10 cUSD! Now joining game...');
-          // Wait a bit for balance to update
-          await new Promise(resolve => setTimeout(resolve, 2000));
+        const loadingToast = toast.loading('Getting you some cUSD from faucet...');
+        try {
+          const claimed = await autoClaimIfNeeded();
+          toast.dismiss(loadingToast);
+          if (claimed) {
+            toast.success('Received 10 cUSD! Now joining game...');
+            // Wait a bit for balance to update
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        } catch (err) {
+          toast.dismiss(loadingToast);
+          toast.error('Failed to claim from faucet. Please try again.');
+          setIsJoining(false);
+          return;
         }
       }
 
       // Check game state
-      if (gameState !== GameState.Open) {
-        toast.error('Game is not open for joining');
+      console.log('Game state:', gameState);
+      console.log('GameState.Open:', GameState.Open);
+      console.log('Game info:', gameInfo);
+      
+      if (gameState !== undefined && gameState !== GameState.Open) {
+        toast.error(`Game is not open for joining (current state: ${gameState})`);
+        setIsJoining(false);
+        return;
+      }
+      
+      if (!gameInfo || gameInfo[0] === 0n) {
+        toast.error('Game #1 has not been created yet. Please create the game first.');
+        console.error('Game needs to be created. Call createGame("Celo Basics Quiz", 10) on the contract.');
+        setIsJoining(false);
+        return;
+      }
+      
+      const entryFee = gameInfo[2]; // Entry fee from game info
+      console.log('Entry fee:', formatEther(entryFee), 'cUSD');
+      
+      // Approve cUSD spending if needed
+      if (approveCUSD && entryFee > 0n) {
+        toast.loading('Approving cUSD spending...');
+        try {
+          approveCUSD({
+            args: [CONTRACTS.triviaGame.address, entryFee],
+          });
+          
+          // Wait for approval
+          console.log('Waiting for approval...');
+          // Note: We'll continue after approval in a separate useEffect
+          return; // Exit here, will continue after approval
+        } catch (err) {
+          console.error('Approval error:', err);
+          toast.dismiss();
+          toast.error('Failed to approve cUSD spending');
+          setIsJoining(false);
+          return;
+        }
+      }
+
+      // Join the game
+      if (!joinGame) {
+        toast.error('Unable to join game. Please try again.');
         setIsJoining(false);
         return;
       }
 
-      // Join the game
-      toast.loading('Joining game...');
-      if (joinGame) {
-        await joinGame({
+      toast.loading('Joining game... Please confirm the transaction in your wallet', {
+        duration: 60000, // 60 second timeout
+      });
+      
+      try {
+        console.log('Calling joinGame with gameId:', GAME_ID);
+        console.log('Contract address:', '0x90c9ba691da6a027bf8cc173ea5171c29b3f3673');
+        console.log('User address:', address);
+        
+        joinGame({
           args: [BigInt(GAME_ID)],
         });
+        
+        console.log('joinGame called successfully, waiting for user confirmation...');
+        // Note: setIsJoining(false) will be called in useEffect when joinIsSuccess or joinIsError is true
+      } catch (err: any) {
+        console.error('Error calling joinGame:', err);
+        toast.dismiss();
+        toast.error('Failed to initiate transaction');
+        setIsJoining(false);
       }
     } catch (error: any) {
       console.error('Error joining game:', error);
+      toast.dismiss();
       toast.error(error?.message || 'Failed to join game');
       setIsJoining(false);
     }

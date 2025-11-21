@@ -1,4 +1,4 @@
-import { useContractRead, useContractWrite, useWaitForTransaction, useAccount, useBalance } from 'wagmi';
+import { useContractRead, useContractWrite, useWaitForTransactionReceipt, useAccount, useBalance } from 'wagmi';
 import { CONTRACTS, GameState } from '@/config/contracts';
 import { parseEther } from 'viem';
 import { useState, useEffect } from 'react';
@@ -36,7 +36,7 @@ export function useFaucet() {
   });
 
   // Wait for transaction
-  const { isSuccess: claimIsSuccess } = useWaitForTransaction({
+  const { isSuccess: claimIsSuccess } = useWaitForTransactionReceipt({
     hash: claimData?.hash,
   });
 
@@ -107,6 +107,7 @@ export function useTriviaGame(gameId?: number) {
     data: joinData, 
     isLoading: joinIsLoading,
     isError: joinIsError,
+    error: joinError,
   } = useContractWrite({
     address: CONTRACTS.triviaGame.address,
     abi: CONTRACTS.triviaGame.abi,
@@ -114,7 +115,7 @@ export function useTriviaGame(gameId?: number) {
   });
 
   // Wait for join transaction
-  const { isSuccess: joinIsSuccess } = useWaitForTransaction({
+  const { isSuccess: joinIsSuccess, isLoading: joinTxLoading } = useWaitForTransactionReceipt({
     hash: joinData?.hash,
   });
 
@@ -125,9 +126,10 @@ export function useTriviaGame(gameId?: number) {
     players: players as `0x${string}`[],
     hasJoined: hasJoined as boolean,
     joinGame,
-    joinIsLoading,
+    joinIsLoading: joinIsLoading || joinTxLoading,
     joinIsSuccess,
     joinIsError,
+    joinError,
     refetchGameInfo,
   };
 }
