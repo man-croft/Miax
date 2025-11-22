@@ -21,6 +21,7 @@ export default function RewardsPage() {
     claimError,
     refetchPendingRewards,
   } = useRewards();
+  const { balance, refetchBalance } = useCeloBalance();
 
   // Debug logging
   useEffect(() => {
@@ -44,7 +45,6 @@ export default function RewardsPage() {
       return () => clearInterval(interval);
     }
   }, [isConnected, isRegistered, refetchPendingRewards, refetchBalance]);
-  const { balance, refetchBalance } = useCeloBalance();
 
   // Handle claim success
   useEffect(() => {
