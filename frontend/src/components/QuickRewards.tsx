@@ -1,23 +1,34 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi';
 import { CONTRACTS } from '@/config/contracts';
 import toast from 'react-hot-toast';
 
 export default function QuickRewards() {
   const [isVisible, setIsVisible] = useState(false);
   const [step, setStep] = useState(0);
+  const [sessionId, setSessionId] = useState<bigint | null>(null);
   const { address } = useAccount();
   
-  const { writeContract: startGame, isPending: startPending, data: startData } = useWriteContract();
-  const { writeContract: submitAnswers, isPending: submitPending, data: submitData } = useWriteContract();
+  const { writeContract: startGame, isPending: startPending, data: startData, error: startError } = useWriteContract();
+  const { writeContract: submitAnswers, isPending: submitPending, data: submitData, error: submitError } = useWriteContract();
   
   const { isSuccess: startSuccess } = useWaitForTransactionReceipt({ hash: startData });
   const { isSuccess: submitSuccess } = useWaitForTransactionReceipt({ hash: submitData });
 
+  // Get current session count to use next available session ID
+  const { data: playerInfo } = useReadContract({
+    address: CONTRACTS.triviaGameV2.address,
+    abi: CONTRACTS.triviaGameV2.abi,
+    functionName: 'getPlayerInfo',
+    args: [address],
+  });
+
   const handleStartGame = async () => {
     try {
+      const nextSessionId = playerInfo ? (playerInfo as any[])[2] : 0n;
+      setSessionId(nextSessionId);
       toast.loading('Starting new game...');
       startGame({
         address: CONTRACTS.triviaGameV2.address,
@@ -27,11 +38,14 @@ export default function QuickRewards() {
     } catch (error) {
       toast.dismiss();
       toast.error('Failed to start game');
+      setStep(0);
     }
   };
 
   const handleCompleteGame = async () => {
-    const answers = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1];
+    if (!sessionId) return;
+    
+    const answers = [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]; // 5 correct answers
     
     try {
       toast.loading('Completing game...');
@@ -39,22 +53,23 @@ export default function QuickRewards() {
         address: CONTRACTS.triviaGameV2.address,
         abi: CONTRACTS.triviaGameV2.abi,
         functionName: 'submitAnswers',
-        args: [BigInt(5), answers], // Use session 5 (next available)
+        args: [sessionId, answers],
       });
     } catch (error) {
       toast.dismiss();
       toast.error('Failed to complete game');
+      setStep(0);
     }
   };
 
   useEffect(() => {
     if (startSuccess && step === 0) {
       toast.dismiss();
-      toast.success('Game started! Now completing it...');
+      toast.success('Game started! Completing it...');
       setStep(1);
       setTimeout(() => {
         handleCompleteGame();
-      }, 10000);
+      }, 2000);
     }
   }, [startSuccess, step]);
 
@@ -65,6 +80,22 @@ export default function QuickRewards() {
       setStep(2);
     }
   }, [submitSuccess, step]);
+
+  useEffect(() => {
+    if (startError) {
+      toast.dismiss();
+      toast.error('Failed to start game');
+      setStep(0);
+    }
+  }, [startError]);
+
+  useEffect(() => {
+    if (submitError) {
+      toast.dismiss();
+      toast.error('Failed to complete game');
+      setStep(0);
+    }
+  }, [submitError]);
 
   if (!isVisible) {
     return (
