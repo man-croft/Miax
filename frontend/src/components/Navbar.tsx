@@ -1,17 +1,34 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAppKit } from '@reown/appkit/react';
 import { useAccount, useDisconnect } from 'wagmi';
+
+// Client-side AppKit hook
+function useClientAppKit() {
+  const [appKit, setAppKit] = useState<any>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const { useAppKit } = require('@reown/appkit/react');
+        setAppKit(useAppKit());
+      } catch (error) {
+        console.warn('AppKit not available');
+      }
+    }
+  }, []);
+
+  return appKit || { open: () => console.warn('AppKit not ready') };
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { isConnected, address } = useAccount();
   const { disconnect } = useDisconnect();
-  const { open } = useAppKit();
+  const { open } = useClientAppKit();
 
   const navLinks = [
     { name: 'Home', href: '/' },

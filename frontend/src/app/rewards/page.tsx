@@ -6,6 +6,7 @@ import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import QuickRewards from '@/components/QuickRewards';
 
 export default function RewardsPage() {
   const router = useRouter();
@@ -21,6 +22,7 @@ export default function RewardsPage() {
     claimError,
     refetchPendingRewards,
   } = useRewards();
+  const { balance, refetchBalance } = useCeloBalance();
 
   // Debug logging
   useEffect(() => {
@@ -44,7 +46,6 @@ export default function RewardsPage() {
       return () => clearInterval(interval);
     }
   }, [isConnected, isRegistered, refetchPendingRewards, refetchBalance]);
-  const { balance, refetchBalance } = useCeloBalance();
 
   // Handle claim success
   useEffect(() => {
@@ -312,6 +313,9 @@ export default function RewardsPage() {
           </div>
         </motion.div>
       </div>
+      
+      {/* Quick Rewards */}
+      {isConnected && isRegistered && <QuickRewards />}
     </div>
   );
 }
