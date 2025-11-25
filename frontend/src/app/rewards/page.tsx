@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { useCeloBalance, usePlayerRegistration } from '@/hooks/useContract';
+import { useRewards, useCeloBalance, usePlayerRegistration } from '@/hooks/useContract';
 import { useMiniPay } from '@/hooks/useMiniPay';
 
 export default function RewardsPage() {
@@ -13,17 +13,15 @@ export default function RewardsPage() {
   const { balance, refetchBalance } = useCeloBalance();
   const { isRegistered } = usePlayerRegistration();
   
-  // Mock rewards data since contract integration needs work
-  const [pendingRewards] = useState('0.15');
-  const [claimIsLoading, setClaimIsLoading] = useState(false);
-  
-  const handleMockClaim = () => {
-    setClaimIsLoading(true);
-    setTimeout(() => {
-      setClaimIsLoading(false);
-      toast.success('🎉 Mock rewards claimed! (Contract integration needed)');
-    }, 2000);
-  };
+  const {
+    pendingRewards,
+    claimRewards,
+    claimIsLoading,
+    claimIsSuccess,
+    claimIsError,
+    claimError,
+    refetchPendingRewards,
+  } = useRewards();
 
   const [isClaimingRewards, setIsClaimingRewards] = useState(false);
 
@@ -157,15 +155,15 @@ export default function RewardsPage() {
           {/* Claim Button */}
           <div className="mt-8 text-center">
             <button
-              onClick={handleMockClaim}
-              disabled={claimIsLoading}
+              onClick={handleClaimRewards}
+              disabled={claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0}
               className={`px-8 py-4 rounded-xl font-bold text-lg transition-all transform ${
-                claimIsLoading
+                claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:scale-105 shadow-lg hover:shadow-xl'
               }`}
             >
-              {claimIsLoading ? (
+              {claimIsLoading || isClaimingRewards ? (
                 <span className="flex items-center justify-center gap-2">
                   <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
@@ -173,8 +171,10 @@ export default function RewardsPage() {
                   </svg>
                   {isMiniPay ? 'Processing via MiniPay...' : 'Claiming Rewards...'}
                 </span>
+              ) : parseFloat(pendingRewards) <= 0 ? (
+                'No Rewards to Claim'
               ) : (
-                `Claim ${pendingRewards} CELO (Demo)`
+                `Claim ${pendingRewards} CELO`
               )}
             </button>
           </div>

@@ -9,12 +9,7 @@ export default function LeaderboardPage() {
   const { isConnected } = useAccount();
   const { leaderboardData } = useLeaderboard(10);
 
-  // Mock data for now since contract integration is incomplete
-  const mockLeaderboard = [
-    { address: '0x1234...5678', username: 'CeloMaster', totalScore: 1250, gamesPlayed: 15, rank: 1 },
-    { address: '0x2345...6789', username: 'BlockchainPro', totalScore: 980, gamesPlayed: 12, rank: 2 },
-    { address: '0x3456...7890', username: 'DeFiExplorer', totalScore: 750, gamesPlayed: 10, rank: 3 },
-  ];
+  const { leaderboardData, refetchLeaderboard } = useLeaderboard(10);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-green-50 py-8 px-4">
@@ -45,9 +40,9 @@ export default function LeaderboardPage() {
           </div>
 
           <div className="p-6">
-            {mockLeaderboard.length > 0 ? (
+            {leaderboardData.length > 0 ? (
               <div className="space-y-4">
-                {mockLeaderboard.map((player, index) => (
+                {leaderboardData.map((player, index) => (
                   <div
                     key={player.address}
                     className={`flex items-center justify-between p-4 rounded-xl border-2 ${
@@ -69,13 +64,13 @@ export default function LeaderboardPage() {
                       
                       <div>
                         <h3 className="font-bold text-gray-900">{player.username}</h3>
-                        <p className="text-sm text-gray-600">{player.address}</p>
+                        <p className="text-sm text-gray-600">{player.address.slice(0, 6)}...{player.address.slice(-4)}</p>
                       </div>
                     </div>
 
                     <div className="text-right">
                       <div className="text-2xl font-bold text-purple-600">{player.totalScore}</div>
-                      <div className="text-sm text-gray-600">{player.gamesPlayed} games</div>
+                      <div className="text-sm text-gray-600">Rank #{player.rank}</div>
                     </div>
                   </div>
                 ))}
@@ -104,16 +99,16 @@ export default function LeaderboardPage() {
           className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6"
         >
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-purple-600 mb-2">3</div>
+            <div className="text-3xl font-bold text-purple-600 mb-2">{leaderboardData.length}</div>
             <div className="text-gray-600">Active Players</div>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-blue-600 mb-2">37</div>
-            <div className="text-gray-600">Games Played</div>
+            <div className="text-3xl font-bold text-blue-600 mb-2">{leaderboardData.reduce((sum, p) => sum + p.totalScore, 0)}</div>
+            <div className="text-gray-600">Total Score</div>
           </div>
           <div className="bg-white rounded-xl shadow-lg p-6 text-center">
-            <div className="text-3xl font-bold text-green-600 mb-2">2.85</div>
-            <div className="text-gray-600">CELO Distributed</div>
+            <div className="text-3xl font-bold text-green-600 mb-2">Live</div>
+            <div className="text-gray-600">On-Chain Data</div>
           </div>
         </motion.div>
       </div>

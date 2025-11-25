@@ -9,6 +9,7 @@ import ProgressBar from '@/components/ProgressBar';
 import { calculateScore, questions as mockQuestions } from '@/data/questions';
 import { useAccount } from 'wagmi';
 import toast from 'react-hot-toast';
+import { useGameSession } from '@/hooks/useContract';
 
 interface Question {
   id: number;
@@ -37,8 +38,10 @@ export default function GamePage() {
   const [gameStarted, setGameStarted] = useState(false);
   
   // Use mock questions for now (TODO: fetch from contract)
-  const [questions] = useState<Question[]>(mockQuestions.slice(0, 5));
+  const [questions] = useState<Question[]>(mockQuestions.slice(0, 10));
   const [isLoadingQuestions] = useState(false);
+  
+  const { submitAnswers, submitIsLoading, submitIsSuccess, getLatestSession } = useGameSession();
 
   // Redirect if not connected
   useEffect(() => {
@@ -104,10 +107,17 @@ export default function GamePage() {
       // Calculate score
       const score = calculateScore(finalAnswers, questions);
       
-      toast.success(`Game complete! You scored ${score.correct}/${score.total}!`);
+      if (address) {
+        // Get the latest session ID
+        const sessionId = getLatestSession();
+        if (sessionId !== null) {
+          // Submit answers to smart contract
+          await submitAnswers(BigInt(sessionId), finalAnswers);
+          toast.success('Answers submitted to blockchain!');
+        }
+      }
       
-      // TODO: Submit to smart contract
-      // await submitGameResults(gameId, finalAnswers, finalTimeSpent);
+      toast.success(`Game complete! You scored ${score.correct}/${score.total}!`);
       
       // Navigate to results page
       setTimeout(() => {

@@ -135,9 +135,15 @@ export function useGameSession() {
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'submitAnswers',
-      args: [sessionId, answers],
+      args: [sessionId, answers.map(a => a)],
     });
   }, [submitAnswers]);
+
+  // Get latest session for current user
+  const getLatestSession = useCallback(() => {
+    if (!address || sessionCount === 0) return null;
+    return sessionCount - 1; // Latest session ID
+  }, [address, sessionCount]);
 
   return {
     sessionCount: sessionCount ? Number(sessionCount) : 0,
@@ -151,6 +157,7 @@ export function useGameSession() {
     submitIsSuccess,
     submitIsError,
     submitError,
+    getLatestSession,
   };
 }
 
@@ -272,8 +279,22 @@ export function useLeaderboard(count: number = 10) {
     args: [BigInt(count)],
   });
 
+  // Transform the data into a more usable format
+  const transformedData = useMemo(() => {
+    if (!leaderboardData) return [];
+    
+    const [addresses, usernames, scores] = leaderboardData as [string[], string[], bigint[]];
+    
+    return addresses.map((address, index) => ({
+      address,
+      username: usernames[index] || `Player ${index + 1}`,
+      totalScore: Number(scores[index]),
+      rank: index + 1,
+    }));
+  }, [leaderboardData]);
+
   return {
-    leaderboardData,
+    leaderboardData: transformedData,
     refetchLeaderboard,
   };
 }
