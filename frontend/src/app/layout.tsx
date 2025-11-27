@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "Celo Knowledge Quest - Learn, Play, Earn",
   description: "Educational play-to-earn trivia game on Celo. Learn about blockchain while earning cUSD rewards.",
   keywords: "Celo, trivia, play-to-earn, blockchain, education, cUSD, MiniPay",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({

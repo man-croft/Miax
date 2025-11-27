@@ -3,6 +3,8 @@ import { CONTRACTS, GAME_CONSTANTS } from '@/config/contracts';
 import { parseEther, formatEther } from 'viem';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getRandomQuestions } from '@/data/questions';
+import { prepareMiniPayContractWrite } from '../../config/web3';
+import { useMiniPay } from './useMiniPay';
 
 // ============ TRIVIA GAME V2 HOOKS ============
 
@@ -11,6 +13,7 @@ import { getRandomQuestions } from '@/data/questions';
  */
 export function usePlayerRegistration() {
   const { address } = useAccount();
+  const { isMiniPay } = useMiniPay();
 
   // Check if player is registered
   const { data: playerInfo, refetch: refetchPlayerInfo } = useReadContract({
@@ -62,23 +65,23 @@ export function usePlayerRegistration() {
   return {
     playerInfo,
     isRegistered,
-    registerUsername: (username: string) => registerUsername({
+    registerUsername: (username: string) => registerUsername(prepareMiniPayContractWrite({
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'registerUsername',
       args: [username],
-    }),
+    }, isMiniPay)),
     registerIsLoading,
     registerIsSuccess,
     registerIsError,
     registerError,
-    updateUsername: (username: string) => updateUsername({
+    updateUsername: (username: string) => updateUsername(prepareMiniPayContractWrite({
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'updateUsername',
       args: [username],
       value: parseEther('0.01'),
-    }),
+    }, isMiniPay)),
     updateIsLoading,
     updateIsSuccess,
     updateIsError,
@@ -91,6 +94,7 @@ export function usePlayerRegistration() {
  */
 export function useGameSession() {
   const { address } = useAccount();
+  const { isMiniPay } = useMiniPay();
 
   // Get player's session count
   const { data: sessionCount } = useReadContract({
@@ -131,11 +135,11 @@ export function useGameSession() {
 
   // Memoize the startGame function to prevent recreation on every render
   const memoizedStartGame = useCallback(async () => {
-    const result = startGame({
+    const result = startGame(prepareMiniPayContractWrite({
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'startGame',
-    });
+    }, isMiniPay));
     
     // Auto-fulfill VRF after a short delay
     setTimeout(async () => {
@@ -154,12 +158,12 @@ export function useGameSession() {
 
   // Memoize the submitAnswers function
   const memoizedSubmitAnswers = useCallback(async (sessionId: bigint, answers: number[]) => {
-    const result = submitAnswers({
+    const result = submitAnswers(prepareMiniPayContractWrite({
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'submitAnswers',
       args: [sessionId, answers.map(a => a)],
-    });
+    }, isMiniPay));
     
     // Auto-fulfill VRF after submitting answers
     setTimeout(async () => {
