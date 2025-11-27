@@ -16,6 +16,9 @@ export function useMiniPay() {
         const isMiniPayEnv =
           provider.isMiniPay ||
           provider.isOperaMini ||
+          provider.isCelo ||
+          provider.chainId === '0xaef3' || // Celo mainnet
+          provider.chainId === '0xa4ec' || // Celo Alfajores
           window.navigator.userAgent.includes('MiniPay') ||
           window.navigator.userAgent.includes('Opera Mini');
 
