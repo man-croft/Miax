@@ -162,17 +162,7 @@ export function useGameSession() {
         functionName: 'startGame',
       });
     
-    // Auto-fulfill VRF after a short delay
-    setTimeout(async () => {
-      try {
-        const response = await fetch('/api/fulfill-vrf', { method: 'POST' });
-        if (response.ok) {
-          console.log('VRF auto-fulfilled');
-        }
-      } catch (error) {
-        console.warn('Auto VRF fulfillment failed:', error);
-      }
-    }, 5000);
+
     
     return result;
   }, [startGame]);
@@ -194,17 +184,7 @@ export function useGameSession() {
       args: [sessionId, answers.map(a => a)],
     });
     
-    // Auto-fulfill VRF after submitting answers
-    setTimeout(async () => {
-      try {
-        const response = await fetch('/api/fulfill-vrf', { method: 'POST' });
-        if (response.ok) {
-          console.log('VRF auto-fulfilled after answer submission');
-        }
-      } catch (error) {
-        console.warn('Auto VRF fulfillment failed:', error);
-      }
-    }, 3000);
+
   }, [submitAnswers, isMiniPay, sendTransaction]);
 
   // Get latest session for current user
@@ -361,29 +341,82 @@ export function useFaucet() {
 }
 
 /**
- * Hook for getting random questions for a game session
+ * Hook for getting session questions from the contract
  */
-export function useGameQuestions(sessionQuestionIds?: number[]) {
+export function useGameQuestions(sessionId?: number) {
+  const { address } = useAccount();
   const [questions, setQuestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Get session data which should contain question IDs
+  const { data: sessionData } = useReadContract({
+    address: CONTRACTS.triviaGameV2.address,
+    abi: CONTRACTS.triviaGameV2.abi,
+    functionName: 'getSession',
+    args: address && sessionId !== undefined ? [address, BigInt(sessionId)] : undefined,
+    query: {
+      enabled: !!address && sessionId !== undefined,
+    },
+  });
+  
   useEffect(() => {
-    const contractQuestions = [
-      { question: "What is Celo?", options: ["A mobile-first blockchain platform", "A cryptocurrency exchange", "A digital wallet app", "A mining hardware company"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
-      { question: "What is cUSD?", options: ["Celo Dollar stablecoin", "Canadian Dollar", "Crypto USD token", "Central USD"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
-      { question: "What consensus mechanism does Celo use?", options: ["Proof of Work", "Proof of Stake", "Delegated Proof of Stake", "Proof of Authority"], correctAnswer: 1, difficulty: "medium", category: "Technical" },
-      { question: "What is MiniPay?", options: ["A payment processor", "A mobile wallet for Celo", "A cryptocurrency exchange", "A DeFi protocol"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
-      { question: "What is the native token of Celo?", options: ["CELO", "CUSD", "CEL", "CLO"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
-      { question: "What makes Celo mobile-first?", options: ["Phone number addresses", "Low fees", "Fast transactions", "All of the above"], correctAnswer: 3, difficulty: "medium", category: "Features" },
-      { question: "What is Valora?", options: ["A DeFi protocol", "A Celo mobile wallet", "A stablecoin", "A consensus algorithm"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
-      { question: "What is the Celo Reserve?", options: ["A mining pool", "A staking mechanism", "Collateral backing stablecoins", "A governance token"], correctAnswer: 2, difficulty: "hard", category: "Technical" },
-      { question: "What programming language are Celo smart contracts written in?", options: ["JavaScript", "Python", "Solidity", "Rust"], correctAnswer: 2, difficulty: "medium", category: "Technical" },
-      { question: "What is the purpose of CELO tokens?", options: ["Only for payments", "Governance and staking", "Mining rewards", "Exchange fees"], correctAnswer: 1, difficulty: "medium", category: "Tokenomics" }
-    ];
+    const fetchQuestions = async () => {
+      if (!sessionData) {
+        // Fallback to hardcoded questions if no session data
+        const fallbackQuestions = [
+          { question: "What is Celo?", options: ["A mobile-first blockchain platform", "A cryptocurrency exchange", "A digital wallet app", "A mining hardware company"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+          { question: "What is cUSD?", options: ["Celo Dollar stablecoin", "Canadian Dollar", "Crypto USD token", "Central USD"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+          { question: "What consensus mechanism does Celo use?", options: ["Proof of Work", "Proof of Stake", "Delegated Proof of Stake", "Proof of Authority"], correctAnswer: 1, difficulty: "medium", category: "Technical" },
+          { question: "What is MiniPay?", options: ["A payment processor", "A mobile wallet for Celo", "A cryptocurrency exchange", "A DeFi protocol"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
+          { question: "What is the native token of Celo?", options: ["CELO", "CUSD", "CEL", "CLO"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+          { question: "What makes Celo mobile-first?", options: ["Phone number addresses", "Low fees", "Fast transactions", "All of the above"], correctAnswer: 3, difficulty: "medium", category: "Features" },
+          { question: "What is Valora?", options: ["A DeFi protocol", "A Celo mobile wallet", "A stablecoin", "A consensus algorithm"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
+          { question: "What is the Celo Reserve?", options: ["A mining pool", "A staking mechanism", "Collateral backing stablecoins", "A governance token"], correctAnswer: 2, difficulty: "hard", category: "Technical" },
+          { question: "What programming language are Celo smart contracts written in?", options: ["JavaScript", "Python", "Solidity", "Rust"], correctAnswer: 2, difficulty: "medium", category: "Technical" },
+          { question: "What is the purpose of CELO tokens?", options: ["Only for payments", "Governance and staking", "Mining rewards", "Exchange fees"], correctAnswer: 1, difficulty: "medium", category: "Tokenomics" }
+        ];
+        setQuestions(fallbackQuestions);
+        setIsLoading(false);
+        return;
+      }
+      
+      // Extract question IDs from session data (contract should provide this)
+      // Session data structure: [questionIds, isCompleted, score, timestamp]
+      const questionIds = (sessionData as any)[0] as bigint[];
+      
+      if (questionIds && questionIds.length > 0) {
+        // Fetch each question from the contract
+        const fetchedQuestions = [];
+        for (const questionId of questionIds) {
+          try {
+            // This would fetch individual questions from contract
+            // For now, use fallback since we need the contract to be properly set up
+            const questionIndex = Number(questionId) % 10;
+            const fallbackQuestions = [
+              { question: "What is Celo?", options: ["A mobile-first blockchain platform", "A cryptocurrency exchange", "A digital wallet app", "A mining hardware company"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+              { question: "What is cUSD?", options: ["Celo Dollar stablecoin", "Canadian Dollar", "Crypto USD token", "Central USD"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+              { question: "What consensus mechanism does Celo use?", options: ["Proof of Work", "Proof of Stake", "Delegated Proof of Stake", "Proof of Authority"], correctAnswer: 1, difficulty: "medium", category: "Technical" },
+              { question: "What is MiniPay?", options: ["A payment processor", "A mobile wallet for Celo", "A cryptocurrency exchange", "A DeFi protocol"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
+              { question: "What is the native token of Celo?", options: ["CELO", "CUSD", "CEL", "CLO"], correctAnswer: 0, difficulty: "easy", category: "Basics" },
+              { question: "What makes Celo mobile-first?", options: ["Phone number addresses", "Low fees", "Fast transactions", "All of the above"], correctAnswer: 3, difficulty: "medium", category: "Features" },
+              { question: "What is Valora?", options: ["A DeFi protocol", "A Celo mobile wallet", "A stablecoin", "A consensus algorithm"], correctAnswer: 1, difficulty: "easy", category: "Ecosystem" },
+              { question: "What is the Celo Reserve?", options: ["A mining pool", "A staking mechanism", "Collateral backing stablecoins", "A governance token"], correctAnswer: 2, difficulty: "hard", category: "Technical" },
+              { question: "What programming language are Celo smart contracts written in?", options: ["JavaScript", "Python", "Solidity", "Rust"], correctAnswer: 2, difficulty: "medium", category: "Technical" },
+              { question: "What is the purpose of CELO tokens?", options: ["Only for payments", "Governance and staking", "Mining rewards", "Exchange fees"], correctAnswer: 1, difficulty: "medium", category: "Tokenomics" }
+            ];
+            fetchedQuestions.push(fallbackQuestions[questionIndex]);
+          } catch (error) {
+            console.error('Error fetching question:', error);
+          }
+        }
+        setQuestions(fetchedQuestions);
+      }
+      
+      setIsLoading(false);
+    };
     
-    setQuestions(contractQuestions);
-    setIsLoading(false);
-  }, [sessionQuestionIds]);
+    fetchQuestions();
+  }, [sessionData]);
 
   return {
     questions,

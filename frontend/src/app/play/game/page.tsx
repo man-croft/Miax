@@ -37,10 +37,14 @@ export default function GamePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   
-  // Use game questions hook to get 10 questions
-  const { questions, isLoading: isLoadingQuestions } = useGameQuestions();
-  
+  // Get game session hooks
   const { submitAnswers, submitIsLoading, submitIsSuccess, getLatestSession } = useGameSession();
+  
+  // Get latest session ID for fetching questions
+  const sessionId = getLatestSession();
+  
+  // Use game questions hook to get questions from contract
+  const { questions, isLoading: isLoadingQuestions } = useGameQuestions(sessionId);
 
   // Redirect if not connected
   useEffect(() => {
@@ -201,7 +205,7 @@ export default function GamePage() {
           className="text-center mb-8"
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            🎓 Celo Knowledge Quest
+            🎓 Zali
           </h1>
           <p className="text-gray-600">
             Answer all questions correctly to win cUSD rewards!

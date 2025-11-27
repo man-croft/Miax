@@ -217,7 +217,7 @@ export default function ResultsPage() {
           <p className="text-gray-600 mb-4">Share your results!</p>
           <button
             onClick={() => {
-              const text = `I just scored ${score}/${total} (${percentage}%) on Celo Knowledge Quest! 🎮`;
+              const text = `I just scored ${score}/${total} (${percentage}%) on Zali! 🎮`;
               window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
             }}
             className="bg-blue-400 hover:bg-blue-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors"

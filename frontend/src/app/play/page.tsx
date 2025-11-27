@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { usePlayerRegistration, useGameSession, useCeloBalance, useContractInfo, useQuestions } from '@/hooks/useContract';
 import { GAME_CONSTANTS } from '@/config/contracts';
-import VRFFulfillment from '@/components/VRFFulfillment';
+
 
 export default function PlayPage() {
   const { address, isConnected } = useAccount();
@@ -326,8 +326,7 @@ export default function PlayPage() {
         </motion.div>
       </main>
       
-      {/* VRF Fulfillment Helper */}
-      <VRFFulfillment />
+
     </div>
   );
 }

@@ -58,7 +58,7 @@ export default function Navbar() {
           <div className="flex-shrink-0">
             <Link href="/">
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent cursor-pointer">
-                🎓 Celo Quest
+                🎓 Zali
               </h1>
             </Link>
           </div>

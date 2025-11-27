@@ -108,7 +108,7 @@ export default function RewardsPage() {
             💰 Your Rewards
           </h1>
           <p className="text-gray-600 text-lg">
-            Claim your earned CELO rewards from trivia games
+            Claim your earned cUSD rewards from trivia games
           </p>
           
           {isMiniPay && !miniPayLoading && (
