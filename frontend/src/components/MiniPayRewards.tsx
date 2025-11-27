@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 
 export function MiniPayRewards() {
   const { isMiniPay, isConnected, connectMiniPay, sendMiniPayTransaction } = useMiniPayIntegration();
-  const { pendingRewards, claimIsLoading, refetchPendingRewards } = useRewards();
+  const { pendingRewards, claimRewards, claimIsLoading, refetchPendingRewards } = useRewards();
   const [isClaimingRewards, setIsClaimingRewards] = useState(false);
 
   const handleClaimRewards = async () => {
@@ -28,15 +28,8 @@ export function MiniPayRewards() {
 
     setIsClaimingRewards(true);
     try {
-      // Encode the claimRewards function call
-      const claimRewardsData = '0x372500ab'; // claimRewards() function selector
-      
-      const txHash = await sendMiniPayTransaction({
-        to: CONTRACTS.triviaGameV2.address,
-        data: claimRewardsData,
-      });
-
-      toast.success(`Rewards claimed! Transaction: ${txHash.slice(0, 10)}...`);
+      await claimRewards();
+      toast.success('Rewards claimed successfully via MiniPay!');
       
       // Refresh rewards after successful claim
       setTimeout(() => {

@@ -391,7 +391,7 @@ export function useGameQuestions(sessionQuestionIds?: number[]) {
 }
 
 /**
- * Hook for rewards management
+ * Hook for rewards management - MiniPay only
  */
 export function useRewards() {
   const { address } = useAccount();
@@ -444,16 +444,15 @@ export function useRewards() {
     pendingRewards: pendingRewards ? formatEther(pendingRewards as bigint) : '0',
     unclaimedSessions: [],
     claimRewards: async () => {
-      if (isMiniPay && sendTransaction) {
-        return sendTransaction({
-          to: CONTRACTS.triviaGameV2.address,
-          data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimRewards')?.encode([]),
-        });
+      if (!isMiniPay) {
+        throw new Error('Reward claims are only available through MiniPay');
       }
-      return claimRewards({
-        address: CONTRACTS.triviaGameV2.address,
-        abi: CONTRACTS.triviaGameV2.abi,
-        functionName: 'claimRewards',
+      if (!sendTransaction) {
+        throw new Error('MiniPay not connected');
+      }
+      return sendTransaction({
+        to: CONTRACTS.triviaGameV2.address,
+        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimRewards')?.encode([]),
       });
     },
     claimIsLoading,
@@ -461,17 +460,15 @@ export function useRewards() {
     claimIsError,
     claimError,
     claimSessionRewards: async (sessionIds: bigint[]) => {
-      if (isMiniPay && sendTransaction) {
-        return sendTransaction({
-          to: CONTRACTS.triviaGameV2.address,
-          data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimSessionRewards')?.encode([sessionIds]),
-        });
+      if (!isMiniPay) {
+        throw new Error('Reward claims are only available through MiniPay');
       }
-      return claimSessionRewards({
-        address: CONTRACTS.triviaGameV2.address,
-        abi: CONTRACTS.triviaGameV2.abi,
-        functionName: 'claimSessionRewards',
-        args: [sessionIds],
+      if (!sendTransaction) {
+        throw new Error('MiniPay not connected');
+      }
+      return sendTransaction({
+        to: CONTRACTS.triviaGameV2.address,
+        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimSessionRewards')?.encode([sessionIds]),
       });
     },
     claimSessionIsLoading,

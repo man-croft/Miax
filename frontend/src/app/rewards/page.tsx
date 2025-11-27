@@ -64,12 +64,13 @@ export default function RewardsPage() {
     setIsClaimingRewards(true);
     
     try {
-      if (isMiniPay) {
-        toast.loading('Processing reward claim via MiniPay...', { duration: 10000 });
-      } else {
-        toast.loading('Please confirm the transaction in your wallet...', { duration: 10000 });
+      if (!isMiniPay) {
+        toast.error('Reward claims are only available through MiniPay');
+        setIsClaimingRewards(false);
+        return;
       }
       
+      toast.loading('Processing reward claim via MiniPay...', { duration: 10000 });
       await claimRewards();
     } catch (error: any) {
       console.error('Error claiming rewards:', error);
@@ -161,9 +162,9 @@ export default function RewardsPage() {
           <div className="mt-8 text-center">
             <button
               onClick={handleClaimRewards}
-              disabled={claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0}
+              disabled={!isMiniPay || claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0}
               className={`px-8 py-4 rounded-xl font-bold text-lg transition-all transform ${
-                claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0
+                !isMiniPay || claimIsLoading || isClaimingRewards || parseFloat(pendingRewards) <= 0
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 hover:scale-105 shadow-lg hover:shadow-xl'
               }`}
@@ -174,8 +175,10 @@ export default function RewardsPage() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  {isMiniPay ? 'Processing via MiniPay...' : 'Claiming Rewards...'}
+                  Processing via MiniPay...
                 </span>
+              ) : !isMiniPay ? (
+                'MiniPay Required'
               ) : parseFloat(pendingRewards) <= 0 ? (
                 'No Rewards to Claim'
               ) : (
@@ -185,18 +188,19 @@ export default function RewardsPage() {
           </div>
 
           {/* MiniPay Info */}
-          {isMiniPay && (
-            <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
-              <div className="flex items-center gap-2 text-blue-800">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <p className="text-sm font-medium">
-                  💡 MiniPay Tip: Rewards are paid in cUSD and gas fees are automatically paid in cUSD
-                </p>
-              </div>
+          <div className="mt-6 p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+            <div className="flex items-center gap-2 text-blue-800">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-sm font-medium">
+                {isMiniPay 
+                  ? '💡 MiniPay Connected: Rewards are paid in cUSD with gas fees automatically paid in cUSD'
+                  : '⚠️ MiniPay Required: Reward claims are only available through MiniPay for seamless cUSD transactions'
+                }
+              </p>
             </div>
-          )}
+          </div>
         </motion.div>
 
         {/* How Rewards Work */}
