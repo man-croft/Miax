@@ -6,10 +6,80 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-// Custom errors
-error InsufficientAllowance(address spender, uint256 required, uint256 current);
-error TokenTransferFailed(address token, address from, address to, uint256 amount);
-error TokenApprovalFailed(address token, address spender, uint256 amount);
+// Error codes as constants
+library ErrorCodes {
+    // General errors (1000-1099)
+    uint256 public constant INVALID_TOKEN_ADDRESS = 1000;
+    uint256 public constant ZERO_ADDRESS = 1001;
+    
+    // Game errors (2000-2099)
+    uint256 public constant GAME_NOT_OPEN = 2000;
+    uint256 public constant GAME_ALREADY_STARTED = 2001;
+    uint256 public constant GAME_NOT_IN_PROGRESS = 2002;
+    uint256 public constant GAME_ALREADY_JOINED = 2003;
+    uint256 public constant GAME_FULL = 2004;
+    uint256 public constant INVALID_WINNER_COUNT = 2005;
+    
+    // Token errors (3000-3099)
+    uint256 public constant INSUFFICIENT_ALLOWANCE = 3000;
+    uint256 public constant TOKEN_TRANSFER_FAILED = 3001;
+    uint256 public constant TOKEN_APPROVAL_FAILED = 3002;
+}
+
+// Custom error types with error codes
+error AppError(uint256 errorCode, string message);
+error AppErrorWithInfo(uint256 errorCode, string message, bytes data);
+
+/**
+ * @title ErrorReporter
+ * @dev Provides error reporting functionality with structured error codes and logging
+ */
+library ErrorReporter {
+    event ErrorLogged(
+        uint256 indexed errorCode,
+        address indexed caller,
+        string message,
+        bytes data
+    );
+    
+    function logError(
+        uint256 errorCode,
+        string memory message
+    ) internal {
+        emit ErrorLogged(errorCode, msg.sender, message, "");
+    }
+    
+    function logErrorWithInfo(
+        uint256 errorCode,
+        string memory message,
+        bytes memory data
+    ) internal {
+        emit ErrorLogged(errorCode, msg.sender, message, data);
+    }
+    
+    function requireWithError(
+        bool condition,
+        uint256 errorCode,
+        string memory message
+    ) internal {
+        if (!condition) {
+            logError(errorCode, message);
+            revert AppError(errorCode, message);
+        }
+    }
+    
+    function requireWithErrorAndInfo(
+        bool condition,
+        uint256 errorCode,
+        string memory message,
+        bytes memory data
+    ) internal {
+        if (!condition) {
+            logErrorWithInfo(errorCode, message, data);
+            revert AppErrorWithInfo(errorCode, message, data);
+        }
+    }
+}
 
 /**
  * @title TriviaGame
@@ -17,6 +87,8 @@ error TokenApprovalFailed(address token, address spender, uint256 amount);
  */
 contract TriviaGame is Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
+    using ErrorReporter for uint256;
+    
     IERC20 public immutable cUSDToken;
     uint256 public constant ENTRY_FEE = 0.1 * 10**18; // 0.1 cUSD (18 decimals)
     uint256 public constant WINNER_SHARE = 80; // 80% of the pool to the winner
@@ -42,21 +114,31 @@ contract TriviaGame is Ownable, ReentrancyGuard {
     uint256 public gameCounter;
     mapping(uint256 => Game) public games;
 
+    // Game events
     event GameCreated(uint256 indexed gameId, string title, uint256 entryFee, uint256 maxPlayers);
     event PlayerJoined(uint256 indexed gameId, address player);
     event GameStarted(uint256 indexed gameId);
     event GameCompleted(uint256 indexed gameId, address[] winners, uint256[] prizes);
     event GameCancelled(uint256 indexed gameId);
     event PrizeDistributed(uint256 indexed gameId, address winner, uint256 amount);
+    
+    // Token events
     event TokenApprovalChecked(address indexed token, address indexed spender, uint256 amount);
     event TokenTransferChecked(address indexed token, address indexed from, address indexed to, uint256 amount);
+    
+    // Error events (from ErrorReporter)
+    event ErrorLogged(uint256 indexed errorCode, address indexed caller, string message, bytes data);
 
     /**
      * @dev Constructor sets the cUSD token address
      * @param _cUSDTokenAddress Address of the cUSD token contract
      */
     constructor(address _cUSDTokenAddress) Ownable(msg.sender) {
-        require(_cUSDTokenAddress != address(0), "Invalid token address");
+        ErrorReporter.requireWithError(
+            _cUSDTokenAddress != address(0),
+            ErrorCodes.INVALID_TOKEN_ADDRESS,
+            "Invalid token address: zero address"
+        );
         cUSDToken = IERC20(_cUSDTokenAddress);
     }
 
@@ -66,7 +148,11 @@ contract TriviaGame is Ownable, ReentrancyGuard {
      * @param maxPlayers Maximum number of players allowed
      */
     function createGame(string memory title, uint256 maxPlayers) external onlyOwner {
-        require(maxPlayers > 0, "Max players must be greater than 0");
+        ErrorReporter.requireWithError(
+            maxPlayers > 0,
+            ErrorCodes.INVALID_WINNER_COUNT,
+            "Max players must be greater than 0"
+        );
         
         uint256 gameId = ++gameCounter;
         Game storage game = games[gameId];
@@ -101,13 +187,42 @@ contract TriviaGame is Ownable, ReentrancyGuard {
         uint256 amount
     ) internal {
         uint256 balanceBefore = token.balanceOf(to);
-        token.safeTransferFrom(from, to, amount);
-        uint256 balanceAfter = token.balanceOf(to);
         
-        if (balanceAfter <= balanceBefore) {
+        try token.safeTransferFrom(from, to, amount) {
+            uint256 balanceAfter = token.balanceOf(to);
+            
+            if (balanceAfter <= balanceBefore) {
+                ErrorReporter.logErrorWithInfo(
+                    ErrorCodes.TOKEN_TRANSFER_FAILED,
+                    "Token transfer failed: balance did not increase",
+                    abi.encode(
+                        address(token),
+                        from,
+                        to,
+                        amount,
+                        balanceBefore,
+                        balanceAfter
+                    )
+                );
+                revert TokenTransferFailed(address(token), from, to, amount);
+            }
+            
+            emit TokenTransferChecked(address(token), from, to, amount);
+        } catch Error(string memory reason) {
+            ErrorReporter.logErrorWithInfo(
+                ErrorCodes.TOKEN_TRANSFER_FAILED,
+                string(abi.encodePacked("Token transfer failed: ", reason)),
+                abi.encode(address(token), from, to, amount)
+            );
+            revert TokenTransferFailed(address(token), from, to, amount);
+        } catch (bytes memory) {
+            ErrorReporter.logErrorWithInfo(
+                ErrorCodes.TOKEN_TRANSFER_FAILED,
+                "Token transfer failed with no reason",
+                abi.encode(address(token), from, to, amount)
+            );
             revert TokenTransferFailed(address(token), from, to, amount);
         }
-        emit TokenTransferChecked(address(token), from, to, amount);
     }
 
     /**
@@ -117,21 +232,40 @@ contract TriviaGame is Ownable, ReentrancyGuard {
     function joinGame(uint256 gameId) external nonReentrant {
         Game storage game = games[gameId];
         
-        if (game.state != GameState.Open) {
-            revert("Game is not open for joining");
-        }
-        if (game.hasPlayed[msg.sender]) {
-            revert("Already joined this game");
-        }
-        if (game.players.length >= game.maxPlayers) {
-            revert("Game is full");
-        }
+        // Check game state
+        ErrorReporter.requireWithError(
+            game.state == GameState.Open,
+            ErrorCodes.GAME_NOT_OPEN,
+            "Game is not open for joining"
+        );
         
-        // Check token approval
-        if (!hasApprovedTokens(msg.sender, game.entryFee)) {
-            uint256 allowance = cUSDToken.allowance(msg.sender, address(this));
-            revert InsufficientAllowance(msg.sender, game.entryFee, allowance);
-        }
+        // Check if player already joined
+        ErrorReporter.requireWithError(
+            !game.hasPlayed[msg.sender],
+            ErrorCodes.GAME_ALREADY_JOINED,
+            "Already joined this game"
+        );
+        
+        // Check if game is full
+        ErrorReporter.requireWithError(
+            game.players.length < game.maxPlayers,
+            ErrorCodes.GAME_FULL,
+            "Game is full"
+        );
+        
+        // Check token approval with detailed error info
+        uint256 allowance = cUSDToken.allowance(msg.sender, address(this));
+        ErrorReporter.requireWithErrorAndInfo(
+            allowance >= game.entryFee,
+            ErrorCodes.INSUFFICIENT_ALLOWANCE,
+            "Insufficient token allowance",
+            abi.encode(
+                msg.sender,
+                address(cUSDToken),
+                game.entryFee,
+                allowance
+            )
+        );
         
         // Transfer entry fee from player to contract
         _safeTransferFrom(cUSDToken, msg.sender, address(this), game.entryFee);
