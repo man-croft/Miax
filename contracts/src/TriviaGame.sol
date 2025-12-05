@@ -2,15 +2,22 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+// Custom errors
+error InsufficientAllowance(address spender, uint256 required, uint256 current);
+error TokenTransferFailed(address token, address from, address to, uint256 amount);
+error TokenApprovalFailed(address token, address spender, uint256 amount);
 
 /**
  * @title TriviaGame
  * @dev A smart contract for managing trivia games with cUSD entry fees and rewards
  */
 contract TriviaGame is Ownable, ReentrancyGuard {
-    IERC20 public cUSDToken;
+    using SafeERC20 for IERC20;
+    IERC20 public immutable cUSDToken;
     uint256 public constant ENTRY_FEE = 0.1 * 10**18; // 0.1 cUSD (18 decimals)
     uint256 public constant WINNER_SHARE = 80; // 80% of the pool to the winner
     uint256 public constant SECOND_PLACE_SHARE = 15; // 15% to second place
@@ -41,6 +48,8 @@ contract TriviaGame is Ownable, ReentrancyGuard {
     event GameCompleted(uint256 indexed gameId, address[] winners, uint256[] prizes);
     event GameCancelled(uint256 indexed gameId);
     event PrizeDistributed(uint256 indexed gameId, address winner, uint256 amount);
+    event TokenApprovalChecked(address indexed token, address indexed spender, uint256 amount);
+    event TokenTransferChecked(address indexed token, address indexed from, address indexed to, uint256 amount);
 
     /**
      * @dev Constructor sets the cUSD token address
@@ -72,22 +81,62 @@ contract TriviaGame is Ownable, ReentrancyGuard {
     }
 
     /**
+     * @notice Checks if a player has approved enough tokens for the game entry fee
+     * @param player Address of the player to check
+     * @param amount Amount of tokens to check allowance for
+     * @return bool True if player has approved enough tokens
+     */
+    function hasApprovedTokens(address player, uint256 amount) public view returns (bool) {
+        uint256 allowance = cUSDToken.allowance(player, address(this));
+        return allowance >= amount;
+    }
+
+    /**
+     * @dev Internal function to safely transfer tokens with proper error handling
+     */
+    function _safeTransferFrom(
+        IERC20 token,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
+        uint256 balanceBefore = token.balanceOf(to);
+        token.safeTransferFrom(from, to, amount);
+        uint256 balanceAfter = token.balanceOf(to);
+        
+        if (balanceAfter <= balanceBefore) {
+            revert TokenTransferFailed(address(token), from, to, amount);
+        }
+        emit TokenTransferChecked(address(token), from, to, amount);
+    }
+
+    /**
      * @dev Allows a player to join a game by paying the entry fee
      * @param gameId ID of the game to join
      */
     function joinGame(uint256 gameId) external nonReentrant {
         Game storage game = games[gameId];
         
-        require(game.state == GameState.Open, "Game is not open for joining");
-        require(!game.hasPlayed[msg.sender], "Already joined this game");
-        require(game.players.length < game.maxPlayers, "Game is full");
+        if (game.state != GameState.Open) {
+            revert("Game is not open for joining");
+        }
+        if (game.hasPlayed[msg.sender]) {
+            revert("Already joined this game");
+        }
+        if (game.players.length >= game.maxPlayers) {
+            revert("Game is full");
+        }
+        
+        // Check token approval
+        if (!hasApprovedTokens(msg.sender, game.entryFee)) {
+            uint256 allowance = cUSDToken.allowance(msg.sender, address(this));
+            revert InsufficientAllowance(msg.sender, game.entryFee, allowance);
+        }
         
         // Transfer entry fee from player to contract
-        require(
-            cUSDToken.transferFrom(msg.sender, address(this), game.entryFee),
-            "Token transfer failed"
-        );
+        _safeTransferFrom(cUSDToken, msg.sender, address(this), game.entryFee);
         
+        // Update game state
         game.players.push(msg.sender);
         game.hasPlayed[msg.sender] = true;
         game.prizePool += game.entryFee;
