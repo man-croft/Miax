@@ -32,56 +32,101 @@ interface WalletError {
 
 const ERROR_MESSAGES: Record<WalletErrorType, string> = {
   [WalletErrorType.NO_ETHEREUM_PROVIDER]: 
-    '🔌 No Web3 wallet detected. To get started, please install one of these wallets:\n\n' +
+    '🔌 No Web3 wallet detected\n\n' +
+    'To get started, you\'ll need to install a Web3 wallet. We recommend:\n' +
     '• For mobile: Trust Wallet, MetaMask Mobile, or Valora\n' +
     '• For desktop: MetaMask, Coinbase Wallet, or Brave Browser\n\n' +
     'After installing, refresh this page and try connecting again.',
-    
+
   [WalletErrorType.USER_REJECTED]: 
-    'Connection was rejected. Please try again and approve the connection in your wallet.',
+    '❌ Connection Rejected\n\n' +
+    'You chose not to connect your wallet. To continue, please approve the connection request in your wallet.',
+
   [WalletErrorType.ALREADY_PROCESSING]: 
-    'A request is already in progress. Please check your wallet and try again.',
+    '⏳ Request in Progress\n\n' +
+    'Please check your wallet. A connection request is already pending your approval.',
+
   [WalletErrorType.UNSUPPORTED_CHAIN]: 
-    '🌐 Unsupported Network. Please switch to one of these networks in your wallet:\n\n' +
+    '🌐 Unsupported Network\n\n' +
+    'Please switch to one of these networks in your wallet:\n' +
     '• Celo Mainnet (Recommended)\n' +
     '• Celo Alfajores (Testnet)\n' +
     '• Celo Baklava (Testnet)\n\n' +
     'Need help? Check our network setup guide in the help section.',
-    
+
   [WalletErrorType.NETWORK_ERROR]: 
-    'Network error. Please check your internet connection and try again.',
+    '🌐 Network Issue\n\n' +
+    'We couldn\'t connect to the network. Please check:\n' +
+    '1. Your internet connection\n' +
+    '2. Your wallet\'s network settings\n' +
+    '3. Try switching between WiFi and mobile data',
+
   [WalletErrorType.TIMEOUT]: 
-    'Connection timed out. Please try again.',
+    '⏱️ Connection Timeout\n\n' +
+    'The connection attempt took too long. This might be due to:\n' +
+    '• Slow internet connection\n' +
+    '• Network congestion\n' +
+    '• Wallet provider issues\n\n' +
+    'Please try again in a moment.',
+
   [WalletErrorType.ACCOUNT_ACCESS_DENIED]: 
-    'Account access was denied. Please grant the required permissions.',
+    '🔒 Permission Required\n\n' +
+    'Please grant account access in your wallet to continue.\n' +
+    '1. Open your wallet extension/app\n' +
+    '2. Check for pending permission requests\n' +
+    '3. Approve the connection',
+
   [WalletErrorType.ACCOUNT_NOT_FOUND]: 
-    'No accounts found. Please unlock your wallet and try again.',
+    '👛 No Wallet Detected\n\n' +
+    'We couldn\'t find any connected accounts. Please:\n' +
+    '1. Unlock your wallet\n' +
+    '2. Make sure you\'re on the correct network\n' +
+    '3. Try disconnecting and reconnecting',
+
   [WalletErrorType.TRANSACTION_REJECTED]: 
-    'Transaction was rejected. Please try again.',
+    '❌ Transaction Cancelled\n\n' +
+    'You chose to reject the transaction. No funds were spent.',
+
   [WalletErrorType.TRANSACTION_FAILED]: 
-    'Transaction failed. Please check your wallet and try again.',
+    '⚠️ Transaction Failed\n\n' +
+    'Something went wrong with your transaction. This could be due to:\n' +
+    '• Network congestion\n' +
+    '• Insufficient gas\n' +
+    '• Contract interaction issues\n\n' +
+    'Please try again or check your wallet for more details.',
+
   [WalletErrorType.INSUFFICIENT_FUNDS]: 
-    '💸 Oops! You don\'t have enough funds for this transaction.\n\n' +
-    '• Current balance: {{balance}} CELO\n' +
-    '• Required: {{required}} CELO\n\n' +
-    'You can get test tokens from the Celo faucet: https://faucet.celo.org',
-    
+    '💰 Insufficient Funds\n\n' +
+    'You don\'t have enough {{token}} to complete this transaction.\n' +
+    'Current balance: {{balance}} {{token}}\n' +
+    'Required: {{required}} {{token}}\n\n' +
+    'Please add funds to your wallet or reduce the amount.',
+
   [WalletErrorType.GAS_ESTIMATION_FAILED]: 
-    '⛽ Failed to estimate gas. This usually happens when:\n' +
-    '1. The network is congested\n' +
-    '2. The contract is paused\n' +
-    '3. There\'s an issue with the transaction parameters\n\n' +
-    'Please try again in a few moments or contact support if the issue persists.',
-  [WalletErrorType.RATE_LIMIT_EXCEEDED]: 
-    'Too many requests. Please wait a moment and try again.',
+    '⛽ Gas Estimation Failed\n\n' +
+    'We couldn\'t calculate the gas fee. This might be due to:\n' +
+    '• Network congestion\n' +
+    '• Complex smart contract interaction\n' +
+    '• Wallet connectivity issues\n\n' +
+    'Please try again in a few moments.',
+
   [WalletErrorType.PROVIDER_ERROR]: 
-    'Wallet provider error. Please try again or contact support if the issue persists.',
+    '⚠️ Wallet Provider Issue\n\n' +
+    'There was a problem with your wallet provider. Please try:\n' +
+    '1. Refreshing the page\n' +
+    '2. Restarting your wallet\n' +
+    '3. Trying a different browser or device',
+
   [WalletErrorType.UNKNOWN_ERROR]: 
-    '❌ Oops! Something went wrong. Here\'s what you can do:\n\n' +
-    '1. Refresh the page and try again\n' +
-    '2. Make sure your wallet is connected\n' +
-    '3. Check your internet connection\n\n' +
-    'Error details: {{error}}',
+    '❓ Oops! Something went wrong\n\n' +
+    'We encountered an unexpected error. Please try again.\n' +
+    'If the problem persists, contact our support team with these details:\n' +
+    'Error code: {{errorCode}}',
+
+  [WalletErrorType.RATE_LIMIT_EXCEEDED]: 
+    '🚦 Too Many Requests\n\n' +
+    'You\'ve made too many attempts in a short time.\n' +
+    'Please wait a few minutes before trying again.',
 };
 
 export function createWalletError(
