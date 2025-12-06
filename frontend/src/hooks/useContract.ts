@@ -133,7 +133,7 @@ export function useGameSession() {
     hash: submitData,
   });
 
-  // Memoize the startGame function to prevent recreation on every render
+  // Memoize the startGame function with approval check
   const memoizedStartGame = useCallback(async () => {
     const result = startGame({
       address: CONTRACTS.triviaGameV2.address,
@@ -142,7 +142,7 @@ export function useGameSession() {
     });
 
     return result;
-  }, [startGame]);
+  }, [startGame, address, needsApproval, approve, isMiniPay, sendTransaction]);
 
   // Memoize the submitAnswers function
   const memoizedSubmitAnswers = useCallback((sessionId: bigint, answers: number[]) => {
@@ -173,6 +173,15 @@ export function useGameSession() {
     submitIsError,
     submitError,
     getLatestSession,
+    // Token approval states
+    needsApproval,
+    hasSufficientApproval,
+    isApprovalLoading,
+    isApproving,
+    isWaitingForApproval,
+    approve,
+    ensureApproval,
+    refetchAllowance,
   };
 }
 
