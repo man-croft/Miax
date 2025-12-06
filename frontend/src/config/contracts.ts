@@ -54,8 +54,8 @@ export const CONTRACTS = {
       }
     ],
   },
-  cUSD: {
-    address: '0x765DE816845861e75A25fCA122bb6898B8B1282a' as `0x${string}`,
+  USDC: {
+    address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as `0x${string}`, // Base Sepolia USDC
     abi: [
       {
         "constant": true,
@@ -88,15 +88,15 @@ export const CONTRACTS = {
   },
 } as const;
 
-// Game constants - MiniPay optimized with cUSD rewards
+// Game constants - Base network with ETH rewards
 export const GAME_CONSTANTS = {
   QUESTIONS_PER_SESSION: 10,
   TIME_LIMIT: 300, // 5 minutes in seconds
-  REWARD_PER_CORRECT: 0.01, // cUSD
-  PERFECT_SCORE_BONUS: 0.05, // cUSD
-  MAX_SPEED_BONUS: 0.02, // cUSD
-  MAX_REWARD_PER_GAME: 0.17, // cUSD
-  ENTRY_FEE: 0.05, // cUSD
+  REWARD_PER_CORRECT: 0.001, // ETH
+  PERFECT_SCORE_BONUS: 0.005, // ETH
+  MAX_SPEED_BONUS: 0.002, // ETH
+  MAX_REWARD_PER_GAME: 0.017, // ETH
+  ENTRY_FEE: 0, // Free to play
   LEADERBOARD_SIZE: 100,
 } as const;
 

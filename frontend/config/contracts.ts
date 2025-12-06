@@ -23,30 +23,30 @@ export const TRIVIA_GAME_ABI = [
   'function hasPlayerPlayed(uint256 _gameId, address _player) external view returns (bool)',
 ] as const;
 
-export const CUSD_ABI = [
+export const USDC_ABI = [
   'function approve(address spender, uint256 amount) external returns (bool)',
   'function allowance(address owner, address spender) external view returns (uint256)',
   'function balanceOf(address account) external view returns (uint256)',
   'function transfer(address to, uint256 amount) external returns (bool)',
 ] as const;
 
-// Contract addresses
+// Contract addresses - To be deployed on Base
 export const CONTRACTS = {
   faucet: {
-    address: '0x707ECcbbFa9073F1e5A5675F22473956FE36FC8d' as `0x${string}`,
+    address: '0x707ECcbbFa9073F1e5A5675F22473956FE36FC8d' as `0x${string}`, // Update after Base deployment
     abi: FAUCET_ABI,
   },
   triviaGame: {
-    address: '0xc4AE01295cfAE3DA96b044F1a4284A93837a644C' as `0x${string}`,
+    address: '0xc4AE01295cfAE3DA96b044F1a4284A93837a644C' as `0x${string}`, // Update after Base deployment
     abi: TRIVIA_GAME_ABI,
   },
   triviaGameV2: {
-    address: '0xc4AE01295cfAE3DA96b044F1a4284A93837a644C' as `0x${string}`,
+    address: '0xc4AE01295cfAE3DA96b044F1a4284A93837a644C' as `0x${string}`, // Update after Base deployment
     abi: TRIVIA_GAME_ABI,
   },
-  cUSD: {
-    address: '0x765DE816845861e75A25fCA122bb6898B8B1282a' as `0x${string}`,
-    abi: CUSD_ABI,
+  USDC: {
+    address: '0x036CbD53842c5426634e7929541eC2318f3dCF7e' as `0x${string}`, // Base Sepolia USDC
+    abi: USDC_ABI,
   },
 } as const;
 
@@ -72,35 +72,35 @@ export interface Game {
   // and should be fetched using their respective getter functions
 }
 
-// Celo Sepolia network configuration
-export const CELO_NETWORK = {
-  id: 44787,
-  name: 'Celo Sepolia',
-  network: 'celo-sepolia',
+// Base Sepolia network configuration
+export const BASE_NETWORK = {
+  id: 84532,
+  name: 'Base Sepolia',
+  network: 'base-sepolia',
   nativeCurrency: {
-    name: 'Celo',
-    symbol: 'CELO',
+    name: 'Ethereum',
+    symbol: 'ETH',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https://alfajores-forno.celo-testnet.org'],
+      http: ['https://sepolia.base.org'],
     },
     public: {
-      http: ['https://alfajores-forno.celo-testnet.org'],
+      http: ['https://sepolia.base.org'],
     },
   },
   blockExplorers: {
     default: {
-      name: 'CeloScan',
-      url: 'https://alfajores.celoscan.io',
+      name: 'BaseScan',
+      url: 'https://sepolia.basescan.org',
     },
   },
   testnet: true,
   contracts: {
     multicall3: {
       address: '0xcA11bde05977b3631167028862bE2a173976CA11' as `0x${string}`,
-      blockCreated: 5882,
+      blockCreated: 1059647,
     },
   },
 } as const;
