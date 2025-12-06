@@ -9,7 +9,7 @@ import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.s
 /**
  * @title TriviaGameV2
  * @dev Continuous trivia game with leaderboard, username registration, and Chainlink VRF
- * Rewards paid in native CELO
+ * Rewards paid in native ETH on Base network
  */
 contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     VRFCoordinatorV2Interface public vrfCoordinator;
@@ -27,10 +27,10 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     uint256 public constant POINTS_PER_CORRECT_ANSWER = 10;
     uint256 public constant SPEED_BONUS_MAX = 5; // Max 5 bonus points for speed
     
-    // Rewards (in native CELO)
-    uint256 public constant REWARD_PER_CORRECT_ANSWER = 0.01 * 10**18; // 0.01 CELO per correct answer
-    uint256 public constant PERFECT_SCORE_BONUS = 0.05 * 10**18; // 0.05 CELO bonus for 10/10
-    uint256 public constant SPEED_BONUS_REWARD = 0.02 * 10**18; // Up to 0.02 CELO for speed
+    // Rewards (in native ETH on Base)
+    uint256 public constant REWARD_PER_CORRECT_ANSWER = 0.001 * 10**18; // 0.001 ETH per correct answer
+    uint256 public constant PERFECT_SCORE_BONUS = 0.005 * 10**18; // 0.005 ETH bonus for 10/10
+    uint256 public constant SPEED_BONUS_REWARD = 0.002 * 10**18; // Up to 0.002 ETH for speed
     
     // Leaderboard & Weekly Rewards
     uint256 public constant LEADERBOARD_SIZE = 100; // Top 100 players
@@ -127,14 +127,14 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Update username (costs 0.01 CELO to prevent spam)
+     * @dev Update username (costs 0.001 ETH to prevent spam)
      */
     function updateUsername(string memory _newUsername) external payable nonReentrant {
         require(players[msg.sender].isRegistered, "Not registered");
         require(bytes(_newUsername).length >= 3 && bytes(_newUsername).length <= 20, "Username must be 3-20 characters");
         require(usernameToAddress[_newUsername] == address(0), "Username already taken");
         require(_isValidUsername(_newUsername), "Invalid username format");
-        require(msg.value >= 0.01 * 10**18, "Insufficient fee");
+        require(msg.value >= 0.001 * 10**18, "Insufficient fee");
         
         string memory oldUsername = players[msg.sender].username;
         delete usernameToAddress[oldUsername];
@@ -399,26 +399,26 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Calculate CELO/cUSD reward based on performance
+     * @dev Calculate ETH reward based on performance
      */
     function _calculateReward(uint8 _correctCount, uint256 _speedBonus) internal pure returns (uint256) {
-        // Base reward: 0.01 cUSD per correct answer
+        // Base reward: 0.001 ETH per correct answer
         uint256 baseReward = _correctCount * REWARD_PER_CORRECT_ANSWER;
-        
-        // Perfect score bonus: 0.05 cUSD for 10/10
+
+        // Perfect score bonus: 0.005 ETH for 10/10
         uint256 perfectBonus = 0;
         if (_correctCount == QUESTIONS_PER_SESSION) {
             perfectBonus = PERFECT_SCORE_BONUS;
         }
-        
-        // Speed bonus reward: up to 0.02 cUSD
+
+        // Speed bonus reward: up to 0.002 ETH
         uint256 speedReward = (_speedBonus * SPEED_BONUS_REWARD) / SPEED_BONUS_MAX;
-        
+
         return baseReward + perfectBonus + speedReward;
     }
-    
+
     /**
-     * @dev Claim all pending rewards (in CELO)
+     * @dev Claim all pending rewards (in ETH)
      */
     function claimRewards() external nonReentrant {
         uint256 amount = pendingRewards[msg.sender];
@@ -433,7 +433,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Claim rewards from specific sessions (in CELO)
+     * @dev Claim rewards from specific sessions (in ETH)
      */
     function claimSessionRewards(uint256[] calldata _sessionIds) external nonReentrant {
         uint256 totalReward = 0;
@@ -506,10 +506,10 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Fund the contract with CELO for rewards (owner only)
+     * @dev Fund the contract with ETH for rewards (owner only)
      */
     function fundRewards() external payable onlyOwner {
-        require(msg.value > 0, "Must send CELO");
+        require(msg.value > 0, "Must send ETH");
         weeklyRewardPool += msg.value;
     }
     
@@ -574,7 +574,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
     }
     
     /**
-     * @dev Receive CELO
+     * @dev Receive ETH
      */
     receive() external payable {
         weeklyRewardPool += msg.value;

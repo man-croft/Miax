@@ -1,47 +1,47 @@
 import { createAppKit } from '@reown/appkit/react'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 
-// Celo Sepolia configuration
-const celoSepolia = {
-  id: 44787,
-  name: 'Celo Sepolia',
-  network: 'celo-sepolia',
+// Base Sepolia configuration
+const baseSepolia = {
+  id: 84532,
+  name: 'Base Sepolia',
+  network: 'base-sepolia',
   nativeCurrency: {
     decimals: 18,
-    name: 'CELO',
-    symbol: 'CELO',
+    name: 'Ethereum',
+    symbol: 'ETH',
   },
   rpcUrls: {
-    public: { http: ['https://sepolia-forno.celo-testnet.org'] },
-    default: { http: ['https://sepolia-forno.celo-testnet.org'] },
+    public: { http: ['https://sepolia.base.org'] },
+    default: { http: ['https://sepolia.base.org'] },
   },
   blockExplorers: {
-    default: { 
-      name: 'CeloScan',
-      url: 'https://sepolia.celoscan.io'
+    default: {
+      name: 'BaseScan',
+      url: 'https://sepolia.basescan.org'
     },
   },
   testnet: true,
 }
 
-// Celo Mainnet
-const celo = {
-  id: 42220,
-  name: 'Celo',
-  network: 'celo',
+// Base Mainnet
+const base = {
+  id: 8453,
+  name: 'Base',
+  network: 'base',
   nativeCurrency: {
     decimals: 18,
-    name: 'CELO',
-    symbol: 'CELO',
+    name: 'Ethereum',
+    symbol: 'ETH',
   },
   rpcUrls: {
-    public: { http: ['https://forno.celo.org'] },
-    default: { http: ['https://forno.celo.org'] },
+    public: { http: ['https://mainnet.base.org'] },
+    default: { http: ['https://mainnet.base.org'] },
   },
   blockExplorers: {
-    default: { 
-      name: 'CeloScan',
-      url: 'https://celoscan.io'
+    default: {
+      name: 'BaseScan',
+      url: 'https://basescan.org'
     },
   },
   testnet: false,
@@ -52,7 +52,7 @@ const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'demo-proj
 
 // 2. Set up Wagmi adapter
 const wagmiAdapter = new WagmiAdapter({
-  networks: [celoSepolia, celo],
+  networks: [baseSepolia, base],
   projectId,
   ssr: true
 })
@@ -60,13 +60,13 @@ const wagmiAdapter = new WagmiAdapter({
 // 3. Configure the modal
 createAppKit({
   adapters: [wagmiAdapter],
-  networks: [celoSepolia, celo],
+  networks: [baseSepolia, base],
   projectId,
   metadata: {
-    name: 'Celo Knowledge Quest',
-    description: 'Test your Celo knowledge and earn CELO rewards',
-    url: 'https://celoquest.app',
-    icons: ['https://celoquest.app/icon.png']
+    name: 'Base Knowledge Quest',
+    description: 'Test your knowledge and earn ETH rewards on Base',
+    url: 'https://basequest.app',
+    icons: ['https://basequest.app/icon.png']
   },
   features: {
     analytics: false,
@@ -79,24 +79,3 @@ createAppKit({
 })
 
 export const config = wagmiAdapter.wagmiConfig
-
-// Helper to prepare transaction with feeCurrency for MiniPay
-export function prepareMiniPayTransaction(tx: any) {
-  return {
-    ...tx,
-    feeCurrency: '0x765DE816845861e75A25fCA122bb6898B8B1282a', // cUSD address
-    type: 'legacy' as const,
-  };
-}
-
-// Helper to prepare contract write for MiniPay
-export function prepareMiniPayContractWrite(contractCall: any, isMiniPay: boolean) {
-  if (!isMiniPay) return contractCall;
-  
-  return {
-    ...contractCall,
-    // Add MiniPay-specific transaction properties
-    feeCurrency: '0x765DE816845861e75A25fCA122bb6898B8B1282a',
-    type: 'legacy' as const,
-  };
-}

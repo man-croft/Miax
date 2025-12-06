@@ -7,38 +7,38 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title Faucet
- * @dev A contract that distributes test cUSD tokens to users (one-time claim)
+ * @dev A contract that distributes test USDC tokens to users (one-time claim)
  */
 contract Faucet is Ownable, ReentrancyGuard {
-    IERC20 public cUSDToken;
-    uint256 public constant CLAIM_AMOUNT = 10 * 10**18; // 10 cUSD (18 decimals)
+    IERC20 public usdcToken;
+    uint256 public constant CLAIM_AMOUNT = 10 * 10**6; // 10 USDC (6 decimals)
     mapping(address => bool) public hasClaimed;
 
     event TokensClaimed(address indexed recipient, uint256 amount);
     event TokensWithdrawn(address indexed owner, uint256 amount);
 
     /**
-     * @dev Constructor sets the cUSD token address
-     * @param _cUSDTokenAddress Address of the cUSD token contract
+     * @dev Constructor sets the USDC token address
+     * @param _usdcTokenAddress Address of the USDC token contract
      */
-    constructor(address _cUSDTokenAddress) Ownable(msg.sender) {
-        require(_cUSDTokenAddress != address(0), "Invalid token address");
-        cUSDToken = IERC20(_cUSDTokenAddress);
+    constructor(address _usdcTokenAddress) Ownable(msg.sender) {
+        require(_usdcTokenAddress != address(0), "Invalid token address");
+        usdcToken = IERC20(_usdcTokenAddress);
     }
 
     /**
-     * @dev Allows users to claim their test cUSD tokens (one-time only)
+     * @dev Allows users to claim their test USDC tokens (one-time only)
      */
     function claim() external nonReentrant {
         require(!hasClaimed[msg.sender], "Already claimed");
         require(
-            cUSDToken.balanceOf(address(this)) >= CLAIM_AMOUNT,
+            usdcToken.balanceOf(address(this)) >= CLAIM_AMOUNT,
             "Insufficient contract balance"
         );
 
         hasClaimed[msg.sender] = true;
         require(
-            cUSDToken.transfer(msg.sender, CLAIM_AMOUNT),
+            usdcToken.transfer(msg.sender, CLAIM_AMOUNT),
             "Transfer failed"
         );
 
@@ -46,23 +46,23 @@ contract Faucet is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @dev Allows the owner to withdraw any remaining cUSD tokens
+     * @dev Allows the owner to withdraw any remaining USDC tokens
      * @param amount Amount of tokens to withdraw
      */
     function withdrawTokens(uint256 amount) external onlyOwner {
         require(
-            cUSDToken.balanceOf(address(this)) >= amount,
+            usdcToken.balanceOf(address(this)) >= amount,
             "Insufficient balance"
         );
-        require(cUSDToken.transfer(owner(), amount), "Transfer failed");
+        require(usdcToken.transfer(owner(), amount), "Transfer failed");
         emit TokensWithdrawn(owner(), amount);
     }
 
     /**
-     * @dev Returns the contract's cUSD balance
+     * @dev Returns the contract's USDC balance
      */
     function getContractBalance() external view returns (uint256) {
-        return cUSDToken.balanceOf(address(this));
+        return usdcToken.balanceOf(address(this));
     }
 
     /**
