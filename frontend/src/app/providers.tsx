@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { config } from '../../config/web3';
 import { AppKitProvider } from '../components/AppKitProvider';
 import { ReactNode } from 'react';
-import { useMiniPay } from '@/hooks/useMiniPay';
 import { WalletErrorBoundary } from '@/components/WalletErrorBoundary';
 
 const queryClient = new QueryClient({

@@ -3,7 +3,6 @@ import { CONTRACTS, GAME_CONSTANTS } from '@/config/contracts';
 import { parseEther, formatEther } from 'viem';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { getRandomQuestions } from '@/data/questions';
-import { useCeloMiniPay } from './useCeloMiniPay';
 
 // ============ TRIVIA GAME V2 HOOKS ============
 
@@ -12,7 +11,6 @@ import { useCeloMiniPay } from './useCeloMiniPay';
  */
 export function usePlayerRegistration() {
   const { address } = useAccount();
-  const { isMiniPay, sendTransaction } = useCeloMiniPay();
 
   // Check if player is registered
   const { data: playerInfo, refetch: refetchPlayerInfo } = useReadContract({
@@ -65,12 +63,6 @@ export function usePlayerRegistration() {
     playerInfo,
     isRegistered,
     registerUsername: async (username: string) => {
-      if (isMiniPay && sendTransaction) {
-        return sendTransaction({
-          to: CONTRACTS.triviaGameV2.address,
-          data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'registerUsername')?.encode([username]),
-        });
-      }
       return registerUsername({
         address: CONTRACTS.triviaGameV2.address,
         abi: CONTRACTS.triviaGameV2.abi,
@@ -83,19 +75,12 @@ export function usePlayerRegistration() {
     registerIsError,
     registerError,
     updateUsername: async (username: string) => {
-      if (isMiniPay && sendTransaction) {
-        return sendTransaction({
-          to: CONTRACTS.triviaGameV2.address,
-          data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'updateUsername')?.encode([username]),
-          value: parseEther('0.01'),
-        });
-      }
       return updateUsername({
         address: CONTRACTS.triviaGameV2.address,
         abi: CONTRACTS.triviaGameV2.abi,
         functionName: 'updateUsername',
         args: [username],
-        value: parseEther('0.01'),
+        value: parseEther('0.001'),
       });
     },
     updateIsLoading,
@@ -110,7 +95,6 @@ export function usePlayerRegistration() {
  */
 export function useGameSession() {
   const { address } = useAccount();
-  const { isMiniPay, sendTransaction } = useCeloMiniPay();
 
   // Get player's session count
   const { data: sessionCount } = useReadContract({
@@ -151,41 +135,24 @@ export function useGameSession() {
 
   // Memoize the startGame function to prevent recreation on every render
   const memoizedStartGame = useCallback(async () => {
-    const result = isMiniPay && sendTransaction ? 
-      await sendTransaction({
-        to: CONTRACTS.triviaGameV2.address,
-        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'startGame')?.encode([]),
-      }) :
-      startGame({
-        address: CONTRACTS.triviaGameV2.address,
-        abi: CONTRACTS.triviaGameV2.abi,
-        functionName: 'startGame',
-      });
-    
+    const result = startGame({
+      address: CONTRACTS.triviaGameV2.address,
+      abi: CONTRACTS.triviaGameV2.abi,
+      functionName: 'startGame',
+    });
 
-    
     return result;
   }, [startGame]);
 
   // Memoize the submitAnswers function
   const memoizedSubmitAnswers = useCallback((sessionId: bigint, answers: number[]) => {
-    if (isMiniPay && sendTransaction) {
-      return sendTransaction({
-        to: CONTRACTS.triviaGameV2.address,
-        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'submitAnswers')?.encode([sessionId, answers]),
-      });
-    }
-    
-    // For regular wagmi, just call the function (it will trigger the transaction)
     submitAnswers({
       address: CONTRACTS.triviaGameV2.address,
       abi: CONTRACTS.triviaGameV2.abi,
       functionName: 'submitAnswers',
       args: [sessionId, answers.map(a => a)],
     });
-    
-
-  }, [submitAnswers, isMiniPay, sendTransaction]);
+  }, [submitAnswers]);
 
   // Get latest session for current user
   const getLatestSession = useCallback(() => {
@@ -287,7 +254,6 @@ export function useContractQuestion(questionId: number) {
  */
 export function useFaucet() {
   const { address } = useAccount();
-  const { isMiniPay, sendTransaction } = useCeloMiniPay();
 
   // Check claim amount
   const { data: claimAmount } = useReadContract({
@@ -299,7 +265,7 @@ export function useFaucet() {
   // Check contract balance
   const { data: contractBalance } = useBalance({
     address: CONTRACTS.faucet?.address as `0x${string}`,
-    token: CONTRACTS.cUSD?.address as `0x${string}`,
+    token: CONTRACTS.USDC?.address as `0x${string}`,
   });
 
   // Claim function
@@ -316,18 +282,12 @@ export function useFaucet() {
   });
 
   const claim = useCallback(async () => {
-    if (isMiniPay && sendTransaction) {
-      return sendTransaction({
-        to: CONTRACTS.faucet?.address,
-        data: CONTRACTS.faucet?.abi.find((f: any) => f.name === 'claim')?.encode([]),
-      });
-    }
     return claimFaucet({
       address: CONTRACTS.faucet?.address,
       abi: CONTRACTS.faucet?.abi,
       functionName: 'claim',
     });
-  }, [isMiniPay, sendTransaction, claimFaucet]);
+  }, [claimFaucet]);
 
   return {
     claim,
@@ -429,7 +389,6 @@ export function useGameQuestions(sessionId?: number) {
  */
 export function useRewards() {
   const { address } = useAccount();
-  const { isMiniPay, sendTransaction } = useCeloMiniPay();
 
   // Get pending rewards
   const { data: pendingRewards, refetch: refetchPendingRewards } = useReadContract({
@@ -478,15 +437,10 @@ export function useRewards() {
     pendingRewards: pendingRewards ? formatEther(pendingRewards as bigint) : '0',
     unclaimedSessions: [],
     claimRewards: async () => {
-      if (!isMiniPay) {
-        throw new Error('Reward claims are only available through MiniPay');
-      }
-      if (!sendTransaction) {
-        throw new Error('MiniPay not connected');
-      }
-      return sendTransaction({
-        to: CONTRACTS.triviaGameV2.address,
-        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimRewards')?.encode([]),
+      return claimRewards({
+        address: CONTRACTS.triviaGameV2.address,
+        abi: CONTRACTS.triviaGameV2.abi,
+        functionName: 'claimRewards',
       });
     },
     claimIsLoading,
@@ -494,15 +448,11 @@ export function useRewards() {
     claimIsError,
     claimError,
     claimSessionRewards: async (sessionIds: bigint[]) => {
-      if (!isMiniPay) {
-        throw new Error('Reward claims are only available through MiniPay');
-      }
-      if (!sendTransaction) {
-        throw new Error('MiniPay not connected');
-      }
-      return sendTransaction({
-        to: CONTRACTS.triviaGameV2.address,
-        data: CONTRACTS.triviaGameV2.abi.find((f: any) => f.name === 'claimSessionRewards')?.encode([sessionIds]),
+      return claimSessionRewards({
+        address: CONTRACTS.triviaGameV2.address,
+        abi: CONTRACTS.triviaGameV2.abi,
+        functionName: 'claimSessionRewards',
+        args: [sessionIds],
       });
     },
     claimSessionIsLoading,
@@ -568,9 +518,9 @@ export function useContractInfo() {
 }
 
 /**
- * Hook for CELO balance
+ * Hook for ETH balance on Base
  */
-export function useCeloBalance() {
+export function useEthBalance() {
   const { address } = useAccount();
 
   const { data: balance, refetch: refetchBalance } = useBalance({
@@ -580,7 +530,7 @@ export function useCeloBalance() {
   return {
     balance: balance?.value ? formatEther(balance.value) : '0',
     formatted: balance?.formatted || '0',
-    symbol: balance?.symbol || 'CELO',
+    symbol: balance?.symbol || 'ETH',
     refetchBalance,
   };
 }
