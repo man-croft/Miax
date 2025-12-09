@@ -577,9 +577,9 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
      * @dev Emergency withdraw (owner only)
      */
     function emergencyWithdraw(uint256 _amount) external onlyOwner {
-        require(_amount <= address(this).balance, "Insufficient balance");
+        if (_amount > address(this).balance) revert InsufficientBalance();
         (bool success, ) = payable(owner()).call{value: _amount}("");
-        require(success, "Transfer failed");
+        if (!success) revert TransferFailed();
     }
     
     /**
