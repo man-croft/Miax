@@ -12,6 +12,15 @@ import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.s
  * Rewards paid in native ETH on Base network
  */
 contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
+    // Custom Errors
+    error InvalidVRFCoordinator();
+    error TransferFailed();
+    error InsufficientBalance();
+    error NoRewardsToClaim();
+    error NoRewardsToDistribute();
+    error TooEarlyForDistribution();
+    error NoPlayers();
+    
     VRFCoordinatorV2Interface public vrfCoordinator;
     
     // Chainlink VRF Configuration
@@ -100,7 +109,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
         uint64 _subscriptionId,
         bytes32 _keyHash
     ) Ownable(msg.sender) VRFConsumerBaseV2(_vrfCoordinator) payable {
-        require(_vrfCoordinator != address(0), "Invalid VRF coordinator");
+        if (_vrfCoordinator == address(0)) revert InvalidVRFCoordinator();
         
         vrfCoordinator = VRFCoordinatorV2Interface(_vrfCoordinator);
         subscriptionId = _subscriptionId;
@@ -422,12 +431,12 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
      */
     function claimRewards() external nonReentrant {
         uint256 amount = pendingRewards[msg.sender];
-        require(amount > 0, "No rewards to claim");
+        if (amount == 0) revert NoRewardsToClaim();
         
         pendingRewards[msg.sender] = 0;
         
         (bool success, ) = payable(msg.sender).call{value: amount}("");
-        require(success, "Transfer failed");
+        if (!success) revert TransferFailed();
         
         emit RewardClaimed(msg.sender, amount);
     }
@@ -450,13 +459,13 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
             totalReward += session.reward;
         }
         
-        require(totalReward > 0, "No rewards to claim");
+        if (totalReward == 0) revert NoRewardsToClaim();
         
         // Deduct from pending
         pendingRewards[msg.sender] -= totalReward;
         
         (bool success, ) = payable(msg.sender).call{value: totalReward}("");
-        require(success, "Transfer failed");
+        if (!success) revert TransferFailed();
         
         emit RewardClaimed(msg.sender, totalReward);
     }
@@ -517,9 +526,9 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
      * @dev Distribute weekly rewards to top players (owner only)
      */
     function distributeRewards() external onlyOwner nonReentrant {
-        require(block.timestamp >= lastRewardDistribution + REWARD_INTERVAL, "Too early");
-        require(weeklyRewardPool > 0, "No rewards to distribute");
-        require(leaderboard.length > 0, "No players");
+        if (block.timestamp < lastRewardDistribution + REWARD_INTERVAL) revert TooEarlyForDistribution();
+        if (weeklyRewardPool == 0) revert NoRewardsToDistribute();
+        if (leaderboard.length == 0) revert NoPlayers();
         
         uint256 totalRewards = weeklyRewardPool;
         
@@ -548,7 +557,7 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
             }
             
             (bool success, ) = payable(leaderboard[i]).call{value: reward}("");
-            require(success, "Transfer failed");
+            if (!success) revert TransferFailed();
         }
         
         weeklyRewardPool = 0;
@@ -568,9 +577,9 @@ contract TriviaGameV2 is Ownable, ReentrancyGuard, VRFConsumerBaseV2 {
      * @dev Emergency withdraw (owner only)
      */
     function emergencyWithdraw(uint256 _amount) external onlyOwner {
-        require(_amount <= address(this).balance, "Insufficient balance");
+        if (_amount > address(this).balance) revert InsufficientBalance();
         (bool success, ) = payable(owner()).call{value: _amount}("");
-        require(success, "Transfer failed");
+        if (!success) revert TransferFailed();
     }
     
     /**

@@ -2,9 +2,19 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SimpleTriviaGame is Ownable {
+    using SafeERC20 for IERC20;
+    
+    // Custom Errors
+    error InvalidTokenAddress();
+    error InvalidOptions();
+    error InvalidCorrectOption();
+    error QuestionNotActive();
+    error InvalidOption();
+    error InsufficientBalance();
     IERC20 public immutable usdcToken;
     uint256 public questionId;
     
@@ -23,7 +33,7 @@ contract SimpleTriviaGame is Ownable {
     event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, uint256 reward);
     
     constructor(address _usdcToken) Ownable(msg.sender) {
-        require(_usdcToken != address(0), "Invalid token address");
+        if (_usdcToken == address(0)) revert InvalidTokenAddress();
         usdcToken = IERC20(_usdcToken);
     }
     
@@ -33,8 +43,8 @@ contract SimpleTriviaGame is Ownable {
         uint256 _correctOption,
         uint256 _rewardAmount
     ) external onlyOwner {
-        require(_options.length > 1, "At least 2 options required");
-        require(_correctOption < _options.length, "Invalid correct option");
+        if (_options.length <= 1) revert InvalidOptions();
+        if (_correctOption >= _options.length) revert InvalidCorrectOption();
         
         questionId++;
         questions[questionId] = Question({
@@ -50,18 +60,15 @@ contract SimpleTriviaGame is Ownable {
     
     function submitAnswer(uint256 _questionId, uint256 _selectedOption) external {
         Question storage question = questions[_questionId];
-        require(question.isActive, "Question not active");
-        require(_selectedOption < question.options.length, "Invalid option");
+        if (!question.isActive) revert QuestionNotActive();
+        if (_selectedOption >= question.options.length) revert InvalidOption();
         
         bool isCorrect = (_selectedOption == question.correctOption);
         
         if (isCorrect) {
             userScores[msg.sender]++;
             if (question.rewardAmount > 0) {
-                require(
-                    usdcToken.transfer(msg.sender, question.rewardAmount),
-                    "Reward transfer failed"
-                );
+                usdcToken.safeTransfer(msg.sender, question.rewardAmount);
             }
         }
         
@@ -69,10 +76,8 @@ contract SimpleTriviaGame is Ownable {
     }
     
     function withdrawTokens(uint256 _amount) external onlyOwner {
-        require(
-            usdcToken.transfer(msg.sender, _amount),
-            "Withdrawal failed"
-        );
+        if (usdcToken.balanceOf(address(this)) < _amount) revert InsufficientBalance();
+        usdcToken.safeTransfer(msg.sender, _amount);
     }
     
     function getQuestion(uint256 _questionId) external view returns (

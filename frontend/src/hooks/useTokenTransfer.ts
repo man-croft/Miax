@@ -12,6 +12,7 @@ type TransferState = {
   isWaitingForTransfer: boolean;
   error: string | null;
   txHash: string | null;
+  retryCount: number;
 };
 
 type UseTokenTransferReturn = {
@@ -36,6 +37,37 @@ type UseTokenTransferReturn = {
   reset: () => void;
 };
 
+// Helper function to parse contract errors
+function parseContractError(error: any): string {
+  if (!error) return 'Unknown error occurred';
+  
+  const errorMessage = error.message || error.toString();
+  
+  // Check for common error patterns
+  if (errorMessage.includes('user rejected')) {
+    return 'Transaction was rejected by user';
+  }
+  if (errorMessage.includes('insufficient funds')) {
+    return 'Insufficient funds for transaction';
+  }
+  if (errorMessage.includes('InsufficientBalance')) {
+    return 'Insufficient token balance';
+  }
+  if (errorMessage.includes('TransferFailed')) {
+    return 'Token transfer failed. Please try again';
+  }
+  if (errorMessage.includes('gas')) {
+    return 'Transaction failed due to gas issues';
+  }
+  if (errorMessage.includes('nonce')) {
+    return 'Transaction nonce error. Please reset your wallet';
+  }
+  
+  return errorMessage.length > 100 
+    ? 'Transaction failed. Please try again' 
+    : errorMessage;
+}
+
 export function useTokenTransfer(): UseTokenTransferReturn {
   const { address } = useAccount();
   const [state, setState] = useState<TransferState>({
@@ -45,7 +77,10 @@ export function useTokenTransfer(): UseTokenTransferReturn {
     isWaitingForTransfer: false,
     error: null,
     txHash: null,
+    retryCount: 0,
   });
+  
+  const MAX_RETRIES = 3;
 
   // Wagmi write hooks
   const { 
@@ -84,6 +119,7 @@ export function useTokenTransfer(): UseTokenTransferReturn {
       isWaitingForTransfer: false,
       error: null,
       txHash: null,
+      retryCount: 0,
     });
     resetApprove();
     resetTransfer();
@@ -122,13 +158,23 @@ export function useTokenTransfer(): UseTokenTransferReturn {
 
     } catch (error: any) {
       console.error('Approve error:', error);
-      const message = error?.message || 'Failed to approve token transfer';
+      const message = parseContractError(error);
+      const newRetryCount = state.retryCount + 1;
+      
       setState(prev => ({
         ...prev,
         isApproving: false,
         isWaitingForApproval: false,
         error: message,
+        retryCount: newRetryCount,
       }));
+      
+      if (newRetryCount < MAX_RETRIES) {
+        toast.error(`${message}. Retry ${newRetryCount}/${MAX_RETRIES}`);
+      } else {
+        toast.error(`${message}. Max retries reached.`);
+      }
+      
       throw error;
     }
   }, [address, writeApprove]);
@@ -166,13 +212,23 @@ export function useTokenTransfer(): UseTokenTransferReturn {
 
     } catch (error: any) {
       console.error('Transfer error:', error);
-      const message = error?.message || 'Failed to transfer tokens';
+      const message = parseContractError(error);
+      const newRetryCount = state.retryCount + 1;
+      
       setState(prev => ({
         ...prev,
         isTransferring: false,
         isWaitingForTransfer: false,
         error: message,
+        retryCount: newRetryCount,
       }));
+      
+      if (newRetryCount < MAX_RETRIES) {
+        toast.error(`${message}. Retry ${newRetryCount}/${MAX_RETRIES}`);
+      } else {
+        toast.error(`${message}. Max retries reached.`);
+      }
+      
       throw error;
     }
   }, [address, writeTransfer]);
@@ -180,7 +236,7 @@ export function useTokenTransfer(): UseTokenTransferReturn {
   // Handle approval transaction status changes
   useEffect(() => {
     if (isApproveError) {
-      const message = approveError?.message || 'Failed to approve token transfer';
+      const message = parseContractError(approveError);
       setState(prev => ({
         ...prev,
         isApproving: false,
@@ -194,7 +250,7 @@ export function useTokenTransfer(): UseTokenTransferReturn {
   // Handle transfer transaction status changes
   useEffect(() => {
     if (isTransferError) {
-      const message = transferError?.message || 'Failed to transfer tokens';
+      const message = parseContractError(transferError);
       setState(prev => ({
         ...prev,
         isTransferring: false,
