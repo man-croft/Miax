@@ -2,9 +2,19 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SimpleTriviaGame is Ownable {
+    using SafeERC20 for IERC20;
+    
+    // Custom Errors
+    error InvalidTokenAddress();
+    error InvalidOptions();
+    error InvalidCorrectOption();
+    error QuestionNotActive();
+    error InvalidOption();
+    error InsufficientBalance();
     IERC20 public immutable usdcToken;
     uint256 public questionId;
     
@@ -23,7 +33,7 @@ contract SimpleTriviaGame is Ownable {
     event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, uint256 reward);
     
     constructor(address _usdcToken) Ownable(msg.sender) {
-        require(_usdcToken != address(0), "Invalid token address");
+        if (_usdcToken == address(0)) revert InvalidTokenAddress();
         usdcToken = IERC20(_usdcToken);
     }
     
