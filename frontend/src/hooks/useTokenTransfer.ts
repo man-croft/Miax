@@ -12,6 +12,7 @@ type TransferState = {
   isWaitingForTransfer: boolean;
   error: string | null;
   txHash: string | null;
+  retryCount: number;
 };
 
 type UseTokenTransferReturn = {
@@ -45,7 +46,10 @@ export function useTokenTransfer(): UseTokenTransferReturn {
     isWaitingForTransfer: false,
     error: null,
     txHash: null,
+    retryCount: 0,
   });
+  
+  const MAX_RETRIES = 3;
 
   // Wagmi write hooks
   const { 
