@@ -50,11 +50,8 @@ contract Faucet is Ownable, ReentrancyGuard {
      * @param amount Amount of tokens to withdraw
      */
     function withdrawTokens(uint256 amount) external onlyOwner {
-        require(
-            usdcToken.balanceOf(address(this)) >= amount,
-            "Insufficient balance"
-        );
-        require(usdcToken.transfer(owner(), amount), "Transfer failed");
+        if (usdcToken.balanceOf(address(this)) < amount) revert InsufficientBalance();
+        if (!usdcToken.transfer(owner(), amount)) revert TransferFailed();
         emit TokensWithdrawn(owner(), amount);
     }
 
