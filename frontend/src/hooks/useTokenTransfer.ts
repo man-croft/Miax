@@ -37,35 +37,102 @@ type UseTokenTransferReturn = {
   reset: () => void;
 };
 
-// Helper function to parse contract errors
+// Helper function to parse contract errors with detailed token transfer messages
 function parseContractError(error: any): string {
-  if (!error) return 'Unknown error occurred';
+  if (!error) return 'An unknown error occurred during the transaction';
   
   const errorMessage = error.message || error.toString();
+  const lowerCaseMessage = errorMessage.toLowerCase();
   
-  // Check for common error patterns
-  if (errorMessage.includes('user rejected')) {
-    return 'Transaction was rejected by user';
-  }
-  if (errorMessage.includes('insufficient funds')) {
-    return 'Insufficient funds for transaction';
-  }
-  if (errorMessage.includes('InsufficientBalance')) {
-    return 'Insufficient token balance';
-  }
-  if (errorMessage.includes('TransferFailed')) {
-    return 'Token transfer failed. Please try again';
-  }
-  if (errorMessage.includes('gas')) {
-    return 'Transaction failed due to gas issues';
-  }
-  if (errorMessage.includes('nonce')) {
-    return 'Transaction nonce error. Please reset your wallet';
+  // User rejection
+  if (lowerCaseMessage.includes('user rejected') || 
+      lowerCaseMessage.includes('user denied') ||
+      error?.code === 4001) {
+    return 'Transaction was cancelled by user';
   }
   
-  return errorMessage.length > 100 
-    ? 'Transaction failed. Please try again' 
-    : errorMessage;
+  // Network issues
+  if (lowerCaseMessage.includes('network') || 
+      lowerCaseMessage.includes('ethers') ||
+      error?.code === 'NETWORK_ERROR') {
+    return 'Network error. Please check your internet connection and try again';
+  }
+  
+  // Gas and transaction issues
+  if (lowerCaseMessage.includes('gas') || 
+      lowerCaseMessage.includes('transaction underpriced') ||
+      lowerCaseMessage.includes('replacement fee too low')) {
+    return 'Transaction failed due to gas issues. Please try again with higher gas settings';
+  }
+  
+  // Token specific errors
+  if (lowerCaseMessage.includes('insufficient balance') ||
+      lowerCaseMessage.includes('exceeds balance') ||
+      error?.code === 'INSUFFICIENT_FUNDS') {
+    return 'Insufficient token balance for this transaction';
+  }
+  
+  if (lowerCaseMessage.includes('allowance') || 
+      lowerCaseMessage.includes('not enough allowance')) {
+    return 'Insufficient token allowance. Please approve the token spending first';
+  }
+  
+  if (lowerCaseMessage.includes('transfer amount exceeds balance')) {
+    return 'Transfer amount exceeds your token balance';
+  }
+  
+  if (lowerCaseMessage.includes('transfer to the zero address')) {
+    return 'Cannot transfer to zero address';
+  }
+  
+  if (lowerCaseMessage.includes('transfer from the zero address')) {
+    return 'Cannot transfer from zero address';
+  }
+  
+  if (lowerCaseMessage.includes('transfer amount exceeds allowance')) {
+    return 'Transfer amount exceeds approved allowance';
+  }
+  
+  if (lowerCaseMessage.includes('erc20: transfer amount exceeds allowance')) {
+    return 'Insufficient allowance for this transfer. Please approve more tokens';
+  }
+  
+  if (lowerCaseMessage.includes('erc20: transfer amount exceeds balance')) {
+    return 'Transfer amount exceeds your token balance';
+  }
+  
+  // Common contract revert reasons
+  if (lowerCaseMessage.includes('reverted')) {
+    const revertReason = errorMessage.match(/reverted with reason string '(.+?)'/i);
+    if (revertReason && revertReason[1]) {
+      return `Transaction reverted: ${revertReason[1]}`;
+    }
+    return 'Transaction was reverted by the contract';
+  }
+  
+  // Fallback error messages based on error code if available
+  switch (error?.code) {
+    case 'UNPREDICTABLE_GAS_LIMIT':
+      return 'Unable to estimate gas for this transaction. The transaction will likely fail.';
+    case 'CALL_EXCEPTION':
+      return 'Contract call exception. The transaction might have reverted.';
+    case 'INVALID_ARGUMENT':
+      return 'Invalid transaction parameters provided';
+    case 'MISSING_ARGUMENT':
+      return 'Missing required transaction parameters';
+    case 'UNSUPPORTED_OPERATION':
+      return 'This operation is not supported';
+    case 'TIMEOUT':
+      return 'Transaction timed out. Please try again';
+  }
+  
+  // For very long error messages, show a generic message
+  if (errorMessage.length > 200) {
+    return 'Transaction failed. Please check your inputs and try again';
+  }
+  
+  // Return the original error message if it's not too long
+  return errorMessage;
 }
 
 export function useTokenTransfer(): UseTokenTransferReturn {
