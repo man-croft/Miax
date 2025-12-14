@@ -28,16 +28,33 @@ No staking. No long setup. Just **connect → play → earn**.
 
 ---
 
-# 🚀 **Live Demo**
+# 🚀 **Live on Base Mainnet!**
 
-* **Frontend:** [https://yourapp.vercel.app](https://yourapp.vercel.app)
-* **Base Mainnet Contract:**
-  * **SimpleTriviaGame:** [`0xE26164De790dDC4F2aDdce1D3084Ce945Fb4c513`](https://basescan.org/address/0xE26164De790dDC4F2aDdce1D3084Ce945Fb4c513#code)
-  * **USDC Address (Payment Token):** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-  * **Compiler Version:** `v0.8.30`
-  * **Optimization:** Enabled (200 runs)
-* **Verification:** [View on Basescan](https://basescan.org/address/0xE26164De790dDC4F2aDdce1D3084Ce945Fb4c513#code)
-* **Demo Video:** (Coming Soon)
+**🎉 DEPLOYED: December 14, 2024**
+
+### Production Contracts
+
+* **SimpleTriviaGame:** [`0x7409Cbcb6577164E96A9b474efD4C32B9e17d59d`](https://basescan.org/address/0x7409Cbcb6577164E96A9b474efD4C32B9e17d59d)
+* **USDC (Base Mainnet):** [`0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`](https://basescan.org/token/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)
+* **Network:** Base Mainnet (Chain ID: 8453)
+* **Compiler:** Solc v0.8.30
+* **Optimization:** 200 runs
+
+### Contract Details
+
+| Property | Value |
+|----------|-------|
+| **Deployer** | `0x2c8D82a53f11B0E9B527a111B2f53C5D5E809806` |
+| **Gas Used** | 2,913,596 |
+| **Deploy Cost** | ~$0.05 |
+| **Initial Questions** | 5 trivia questions |
+| **Reward per Answer** | 0.1 USDC |
+
+### Quick Links
+
+* 🔍 **[View on BaseScan](https://basescan.org/address/0x7409Cbcb6577164E96A9b474efD4C32B9e17d59d)**
+* 🎮 **Frontend:** (Deploying soon)
+* 📹 **Demo Video:** (Coming soon)
 
 ---
 
