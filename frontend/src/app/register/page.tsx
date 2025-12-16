@@ -1,13 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { usePlayerRegistration } from '@/hooks/useContract';
 import { useRouter } from 'next/navigation';
 import { useAccount } from 'wagmi';
 import toast from 'react-hot-toast';
-import { registrationSchema, RegistrationFormData, validationMessages } from '@/utils/validations/auth.schema';
+import { registrationSchema, RegistrationFormData } from '@/utils/validations/auth.schema';
+import { useSanitizedForm } from '@/hooks/useSanitizedForm';
+import { usePlayerRegistration } from '@/hooks/useContract';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -16,29 +15,22 @@ export default function RegisterPage() {
   const { 
     isRegistered, 
     registerUsername, 
-    registerIsLoading, 
-    registerIsSuccess,
-    registerIsError,
-    registerError,
+    registerState,
     refetchPlayerInfo,
   } = usePlayerRegistration();
+  
+  const { isLoading: registerIsLoading, isSuccess: registerIsSuccess, error: registerError } = registerState;
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors, isDirty, isValid, isSubmitting },
-    setError: setFormError,
-    clearErrors,
-  } = useForm<RegistrationFormData>({
-    resolver: zodResolver(registrationSchema),
+  } = useSanitizedForm(registrationSchema, {
     mode: 'onChange',
     defaultValues: {
       username: '',
     },
   });
-
-  const watchedUsername = watch('username');
 
   // Redirect if already registered
   useEffect(() => {
@@ -62,10 +54,10 @@ export default function RegisterPage() {
 
   // Show error toast
   useEffect(() => {
-    if (registerIsError && registerError) {
+    if (registerError) {
       toast.error(registerError.message || 'Registration failed. Please try again.');
     }
-  }, [registerIsError, registerError]);
+  }, [registerError]);
 
   const onSubmit = async (data: RegistrationFormData) => {
     try {

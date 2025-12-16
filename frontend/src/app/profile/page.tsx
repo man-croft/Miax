@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePlayerRegistration, useRewards, useCeloBalance } from '@/hooks/useContract';
 import { useAccount } from 'wagmi';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { sanitizeUsername } from '@/utils/sanitize';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -72,17 +73,21 @@ export default function ProfilePage() {
     : '0';
 
   const handleUpdateUsername = async () => {
-    if (!newUsername || newUsername.length < 3 || newUsername.length > 20) {
-      toast.error('Username must be 3-20 characters');
+    const sanitizedUsername = sanitizeUsername(newUsername);
+    
+    if (!sanitizedUsername || sanitizedUsername.length < 3) {
+      toast.error('Username must be at least 3 characters');
       return;
     }
 
     try {
-      toast.loading('Updating username... (costs 0.01 CELO)', {
+      const loadingToast = toast.loading('Updating username... (costs 0.01 CELO)', {
         duration: 60000,
       });
-      updateUsername(newUsername);
-      toast.dismiss();
+      
+      await updateUsername(sanitizedUsername);
+      
+      toast.dismiss(loadingToast);
       toast.success('Username updated successfully!');
       setIsEditing(false);
       setNewUsername('');
