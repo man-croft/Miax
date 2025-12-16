@@ -470,14 +470,70 @@ Weekly rewards:
 
 ---
 
+## 🔒 **Smart Contract Security**
+
+- Reentrancy protection with OpenZeppelin's `ReentrancyGuard`
+- Access control with `Ownable`
+- Input validation for all user-provided data
+- Secure random number generation using Chainlink VRF
+- Emergency withdrawal functions for admin
+- Comprehensive test coverage
+
+## 🔐 **Input Sanitization**
+
+The application implements comprehensive input sanitization to prevent XSS and injection attacks. The following measures are in place:
+
+### Sanitization Utilities
+
+- `sanitizeString(input: string)`: Removes HTML/JS tags and escapes special characters
+- `sanitizeUsername(username: string)`: Sanitizes usernames with strict character whitelisting
+- `sanitizeNumber(input: unknown)`: Safely converts input to a number with proper error handling
+- `sanitizeAddress(address: string)`: Validates and sanitizes Ethereum addresses
+
+### Form Handling
+
+The `useSanitizedForm` hook wraps react-hook-form with automatic input sanitization:
+
+```typescript
+import { useSanitizedForm } from '@/hooks/useSanitizedForm';
+import { z } from 'zod';
+
+const schema = z.object({
+  username: z.string().min(3).max(20),
+  // other fields...
+});
+
+const form = useSanitizedForm(schema, {
+  // optional react-hook-form options
+});
+```
+
+### Validation
+
+Input validation is handled by Zod schemas with built-in sanitization:
+
+```typescript
+import { z } from 'zod';
+import { sanitizeUsername } from '@/utils/sanitize';
+
+export const usernameSchema = z
+  .string()
+  .min(3)
+  .max(20)
+  .transform(val => sanitizeUsername(val.trim()));
+```
+
+### Testing
+
+All sanitization functions have corresponding unit tests in `src/utils/__tests__/sanitize.test.ts`.
+
+---
+
 # 🛡 **Security Notes**
 
 * **Reentrancy Protection**: All contracts use OpenZeppelin's `ReentrancyGuard`
 * **Access Control**: Admin functions protected with `onlyOwner` modifier
-* **Safe Token Transfers**: Using OpenZeppelin's `SafeERC20` for USDC operations
-* **Chainlink VRF**: Provably fair randomness for question selection
-* **One-time faucet claims**: Enforced by mapping
-* **Username validation**: Alphanumeric + underscore only
+* **Input validation**: Alphanumeric + underscore only
 * **Time limits**: 5-minute timeout per game session
 * **Gas optimization**: Efficient storage patterns and loops
 * **No price manipulation**: Rewards are fixed in ETH, not dependent on oracle prices
