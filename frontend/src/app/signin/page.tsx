@@ -238,22 +238,21 @@ export default function SignInPage() {
                   })}
               </div>
             </fieldset>
-              
-              {/* Help section */}
-              <div className="pt-4 mt-6 border-t border-gray-100">
-                <p className="text-xs text-center text-gray-500">
-                  Need help connecting?{' '}
-                  <button 
-                    className="font-medium text-blue-600 hover:text-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-1"
-                    onClick={() => {
-                      setConnectionError('For help, please ensure you have a Web3 wallet installed and try again.');
-                    }}
-                    aria-label="Get help connecting wallet"
-                  >
-                    Get help
-                  </button>
-                </p>
-              </div>
+            
+            {/* Help section */}
+            <div className="pt-4 mt-6 border-t border-gray-100">
+              <p className="text-xs text-center text-gray-500">
+                Need help connecting?{' '}
+                <button 
+                  className="font-medium text-blue-600 hover:text-blue-500 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded px-1"
+                  onClick={() => {
+                    setConnectionError('For help, please ensure you have a Web3 wallet installed and try again.');
+                  }}
+                  aria-label="Get help connecting wallet"
+                >
+                  Get help
+                </button>
+              </p>
             </div>
           </div>
         </motion.div>
