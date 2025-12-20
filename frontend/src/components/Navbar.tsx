@@ -60,7 +60,7 @@ export default function Navbar() {
     return () => {};
   }, [pathname]); // Re-run when pathname changes
 
-  // Close mobile menu when clicking outside
+  // Close mobile menu when clicking outside or pressing Escape
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -73,11 +73,20 @@ export default function Navbar() {
       }
     };
 
+    const handleEscapeKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+
     document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleEscapeKey);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscapeKey);
     };
-  }, []);
+  }, [mobileMenuOpen]);
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -92,7 +101,7 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/">
+            <Link href="/" aria-label="Zali Home">
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent cursor-pointer">
                 🎓 Zali
               </h1>
@@ -105,7 +114,7 @@ export default function Navbar() {
               <Link
                 key={link.name}
                 href={link.href}
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 ${
                   pathname === link.href
                     ? 'bg-green-100 text-green-700'
                     : 'text-gray-700 hover:bg-green-50 hover:text-green-600'
@@ -123,13 +132,15 @@ export default function Navbar() {
                 <>
                   <button
                     onClick={() => open()}
-                    className="px-3 py-2 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors"
+                    className="px-3 py-2 text-sm bg-green-100 text-green-700 hover:bg-green-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2"
+                    aria-label={`Connected wallet: ${address?.slice(0, 6)}...${address?.slice(-4)}`}
                   >
                     {address?.slice(0, 6)}...{address?.slice(-4)}
                   </button>
                   <button
                     onClick={() => disconnect()}
-                    className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors"
+                    className="px-3 py-1 text-sm bg-red-100 text-red-700 hover:bg-red-200 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2"
+                    aria-label="Disconnect wallet"
                   >
                     Disconnect
                   </button>
@@ -137,7 +148,8 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={() => open()}
-                  className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-md transition-colors"
+                  className="px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-green-800 focus:ring-offset-2"
+                  aria-label="Connect wallet"
                 >
                   Connect Wallet
                 </button>
@@ -156,13 +168,15 @@ export default function Navbar() {
                 <>
                   <button
                     onClick={() => open()}
-                    className="px-2 py-1 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded transition-colors"
+                    className="px-2 py-1 text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-600"
+                    aria-label={`Connected wallet: ${address?.slice(0, 4)}...${address?.slice(-2)}`}
                   >
                     {address?.slice(0, 4)}...{address?.slice(-2)}
                   </button>
                   <button
                     onClick={() => disconnect()}
-                    className="px-2 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors"
+                    className="px-2 py-1 text-xs bg-red-100 text-red-700 hover:bg-red-200 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-red-600"
+                    aria-label="Disconnect wallet"
                   >
                     ✕
                   </button>
@@ -170,7 +184,8 @@ export default function Navbar() {
               ) : (
                 <button
                   onClick={() => open()}
-                  className="px-3 py-1 text-xs bg-green-600 text-white hover:bg-green-700 rounded transition-colors"
+                  className="px-3 py-1 text-xs bg-green-600 text-white hover:bg-green-700 rounded transition-colors focus:outline-none focus:ring-2 focus:ring-green-800"
+                  aria-label="Connect wallet"
                 >
                   Connect
                 </button>
@@ -271,7 +286,7 @@ export default function Navbar() {
                     >
                       <Link
                         href={link.href}
-                        className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                        className={`block px-4 py-3 rounded-lg text-base font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-inset ${
                           pathname === link.href
                             ? 'bg-green-100 text-green-700'
                             : 'text-gray-700 hover:bg-green-50 hover:text-green-600'
@@ -294,7 +309,8 @@ export default function Navbar() {
                           open();
                           setMobileMenuOpen(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                        className="w-full px-4 py-2 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-inset"
+                        aria-label={`Connected wallet: ${address?.slice(0, 6)}...${address?.slice(-4)}`}
                       >
                         Wallet: {address?.slice(0, 6)}...{address?.slice(-4)}
                       </button>
@@ -303,7 +319,8 @@ export default function Navbar() {
                           disconnect();
                           setMobileMenuOpen(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        className="w-full px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-inset"
+                        aria-label="Disconnect wallet"
                       >
                         Disconnect Wallet
                       </button>
