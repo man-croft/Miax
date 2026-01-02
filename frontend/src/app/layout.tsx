@@ -6,7 +6,7 @@ import Navbar from "@/components/Navbar";
 import { SkipNavLink } from "@/components/SkipNavLink";
 import { Toaster } from "react-hot-toast";
 import { AutoFaucetProvider } from "@/contexts/AutoFaucetContext";
-import ErrorBoundary from "@/components/ErrorBoundary";
+import { LoadingProvider } from "@/components/LoadingProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,12 +25,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} antialiased bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen`}>
-        <ErrorBoundary 
-          name="RootErrorBoundary"
-          level="page"
-          enableLogging={true}
-        >
-          <Providers>
+        <Providers>
+          <LoadingProvider>
             <AutoFaucetProvider>
               <SkipNavLink />
               <Navbar />
@@ -39,8 +35,8 @@ export default function RootLayout({
               </main>
               <Toaster position="top-right" />
             </AutoFaucetProvider>
-          </Providers>
-        </ErrorBoundary>
+          </LoadingProvider>
+        </Providers>
       </body>
     </html>
   );
