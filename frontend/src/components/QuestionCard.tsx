@@ -5,14 +5,49 @@ import { motion } from 'framer-motion';
 import { QuestionCardProps } from '@/types/components';
 import type { Question } from '@/data/questions';
 
+/** Option labels for multiple choice answers */
 type OptionLabel = 'A' | 'B' | 'C' | 'D';
 
+/**
+ * Extended props for QuestionCard component with additional control options
+ * @interface ExtendedQuestionCardProps
+ * @extends {QuestionCardProps}
+ */
 interface ExtendedQuestionCardProps extends QuestionCardProps {
+  /** Whether user interaction should be disabled */
   disabled?: boolean;
 }
 
+/** Available option labels for the multiple choice questions */
 const optionLabels: readonly OptionLabel[] = ['A', 'B', 'C', 'D'] as const;
 
+/**
+ * QuestionCard - An interactive card component for displaying trivia questions
+ * with multiple choice answers.
+ * 
+ * Features:
+ * - Animated entry/exit transitions
+ * - Visual feedback on selection
+ * - Accessibility support with ARIA labels
+ * - Responsive design for mobile and desktop
+ * - Difficulty and category badges
+ * - Loading state for async questions
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <QuestionCard
+ *   question={currentQuestion}
+ *   questionNumber={5}
+ *   totalQuestions={10}
+ *   onAnswer={(index) => handleAnswer(index)}
+ *   disabled={isSubmitting}
+ * />
+ * ```
+ * 
+ * @param {ExtendedQuestionCardProps} props - Component props
+ * @returns {JSX.Element} Rendered question card with options
+ */
 export default function QuestionCard({
   question,
   questionNumber,
