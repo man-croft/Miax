@@ -105,11 +105,32 @@ contract SimpleTriviaGame is Ownable {
      */
     event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, uint256 reward);
     
+    // ============ Constructor ============
+    
+    /**
+     * @notice Initializes the trivia game contract with USDC token
+     * @dev Sets the owner and validates token address
+     * @param _usdcToken Address of the USDC token contract for rewards
+     * @custom:throws InvalidTokenAddress if _usdcToken is zero address
+     */
     constructor(address _usdcToken) Ownable(msg.sender) {
         if (_usdcToken == address(0)) revert InvalidTokenAddress();
         usdcToken = IERC20(_usdcToken);
     }
     
+    // ============ External Functions ============
+    
+    /**
+     * @notice Adds a new trivia question to the game
+     * @dev Only callable by contract owner. Increments questionId counter
+     * @param _questionText The question text to display to users
+     * @param _options Array of answer choices (must have at least 2 options)
+     * @param _correctOption Index of the correct answer (must be valid index)
+     * @param _rewardAmount USDC amount to reward for correct answer (can be 0)
+     * @custom:throws InvalidOptions if options array has <= 1 elements
+     * @custom:throws InvalidCorrectOption if correctOption >= options.length
+     * @custom:emits QuestionAdded when question is successfully added
+     */
     function addQuestion(
         string memory _questionText,
         string[] memory _options,
@@ -131,6 +152,16 @@ contract SimpleTriviaGame is Ownable {
         emit QuestionAdded(questionId, _questionText, _rewardAmount);
     }
     
+    /**
+     * @notice Allows users to submit an answer to an active question
+     * @dev Validates question state and option, updates score, and transfers rewards
+     * @param _questionId ID of the question to answer
+     * @param _selectedOption Index of the chosen answer option
+     * @custom:throws QuestionNotActive if question is not active
+     * @custom:throws InvalidOption if selectedOption is out of bounds
+     * @custom:emits AnswerSubmitted with result and reward amount
+     * @custom:security Uses SafeERC20 to prevent reentrancy attacks
+     */
     function submitAnswer(uint256 _questionId, uint256 _selectedOption) external {
         Question storage question = questions[_questionId];
         if (!question.isActive) revert QuestionNotActive();
@@ -148,11 +179,29 @@ contract SimpleTriviaGame is Ownable {
         emit AnswerSubmitted(msg.sender, _questionId, isCorrect, isCorrect ? question.rewardAmount : 0);
     }
     
+    /**
+     * @notice Allows owner to withdraw USDC tokens from contract
+     * @dev Only callable by owner. Checks balance before transfer
+     * @param _amount Amount of USDC tokens to withdraw (in token decimals)
+     * @custom:throws InsufficientBalance if contract balance < _amount
+     * @custom:security Uses SafeERC20 for secure token transfer
+     */
     function withdrawTokens(uint256 _amount) external onlyOwner {
         if (usdcToken.balanceOf(address(this)) < _amount) revert InsufficientBalance();
         usdcToken.safeTransfer(msg.sender, _amount);
     }
     
+    /**
+     * @notice Retrieves all details of a specific question
+     * @dev View function - does not modify state
+     * @param _questionId ID of the question to retrieve
+     * @return questionText The question text
+     * @return options Array of answer choices
+     * @return correctOption Index of the correct answer
+     * @return rewardAmount USDC reward for correct answer
+     * @return isActive Whether the question is currently active
+     * @custom:note Returns default values if questionId doesn't exist
+     */
     function getQuestion(uint256 _questionId) external view returns (
         string memory questionText,
         string[] memory options,
