@@ -44,10 +44,30 @@ contract SimpleTriviaGame is Ownable {
     error InvalidOption();
     
     /// @notice Thrown when contract has insufficient balance for withdrawal
+    /// @notice Thrown when contract has insufficient balance for withdrawal
     error InsufficientBalance();
+    
+    // ============ State Variables ============
+    
+    /// @notice The USDC token contract used for rewards distribution
+    /// @dev Immutable to prevent changes after deployment
     IERC20 public immutable usdcToken;
+    
+    /// @notice Counter for generating unique question IDs
+    /// @dev Increments with each new question, starting from 1
     uint256 public questionId;
     
+    // ============ Structs ============
+    
+    /**
+     * @notice Structure representing a trivia question
+     * @dev Stores all data needed for a complete question
+     * @param questionText The text of the question presented to users
+     * @param options Array of possible answer choices
+     * @param correctOption Index of the correct answer in options array
+     * @param rewardAmount USDC amount awarded for correct answer (in token decimals)
+     * @param isActive Whether the question is currently accepting answers
+     */
     struct Question {
         string questionText;
         string[] options;
@@ -56,10 +76,33 @@ contract SimpleTriviaGame is Ownable {
         bool isActive;
     }
     
+    // ============ Mappings ============
+    
+    /// @notice Maps question ID to Question struct
+    /// @dev questionId => Question data
     mapping(uint256 => Question) public questions;
+    
+    /// @notice Maps user address to their total correct answers count
+    /// @dev user address => score (number of correct answers)
     mapping(address => uint256) public userScores;
     
+    // ============ Events ============
+    
+    /**
+     * @notice Emitted when a new question is added to the game
+     * @param questionId Unique identifier for the question
+     * @param questionText The text of the added question
+     * @param reward USDC reward amount for correct answer
+     */
     event QuestionAdded(uint256 indexed questionId, string questionText, uint256 reward);
+    
+    /**
+     * @notice Emitted when a user submits an answer
+     * @param user Address of the user who submitted the answer
+     * @param questionId ID of the question answered
+     * @param isCorrect Whether the answer was correct
+     * @param reward USDC amount awarded (0 if incorrect)
+     */
     event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, uint256 reward);
     
     constructor(address _usdcToken) Ownable(msg.sender) {
