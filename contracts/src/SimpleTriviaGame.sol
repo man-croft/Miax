@@ -5,15 +5,45 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+/**
+ * @title SimpleTriviaGame
+ * @author Zali Team
+ * @notice A blockchain-based trivia game where users answer questions to earn USDC rewards
+ * @dev Uses OpenZeppelin's SafeERC20 for secure token transfers and Ownable for access control
+ * 
+ * Key features:
+ * - Owner can add questions with multiple choice options
+ * - Users submit answers and earn points for correct responses
+ * - Automatic USDC rewards distribution for correct answers
+ * - Question activation/deactivation system
+ * - User score tracking
+ * 
+ * Security considerations:
+ * - Only owner can add questions and withdraw tokens
+ * - SafeERC20 prevents reentrancy attacks
+ * - Input validation on all external functions
+ */
 contract SimpleTriviaGame is Ownable {
     using SafeERC20 for IERC20;
     
-    // Custom Errors
+    // ============ Custom Errors ============
+    
+    /// @notice Thrown when an invalid token address (zero address) is provided
     error InvalidTokenAddress();
+    
+    /// @notice Thrown when question options array is invalid (length <= 1)
     error InvalidOptions();
+    
+    /// @notice Thrown when correct option index is out of bounds
     error InvalidCorrectOption();
+    
+    /// @notice Thrown when attempting to interact with an inactive question
     error QuestionNotActive();
+    
+    /// @notice Thrown when selected option index is out of bounds
     error InvalidOption();
+    
+    /// @notice Thrown when contract has insufficient balance for withdrawal
     error InsufficientBalance();
     IERC20 public immutable usdcToken;
     uint256 public questionId;
