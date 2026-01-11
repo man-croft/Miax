@@ -1,19 +1,59 @@
 import { motion } from 'framer-motion';
 import { TrophyIcon, UserCircleIcon } from '@heroicons/react/24/outline';
 
+/**
+ * Leaderboard entry representing a player's ranking and score
+ * @interface LeaderboardEntry
+ */
 type LeaderboardEntry = {
+  /** Wallet address of the player */
   address: string;
+  /** Display name or username */
   username: string;
+  /** Total accumulated score */
   totalScore: number;
+  /** Current ranking position (1-based) */
   rank: number;
 };
 
+/**
+ * Props for the Leaderboard component
+ * @interface LeaderboardProps
+ */
 type LeaderboardProps = {
+  /** Array of leaderboard entries sorted by rank */
   data: LeaderboardEntry[];
+  /** Current user's wallet address for highlighting */
   currentUserAddress?: string;
+  /** Additional CSS classes to apply */
   className?: string;
 };
 
+/**
+ * Leaderboard - Displays top players ranked by score with visual hierarchy
+ * 
+ * Features:
+ * - Top 10 player rankings
+ * - Medal-style rank indicators (gold, silver, bronze)
+ * - Current user highlighting
+ * - Truncated wallet addresses for privacy
+ * - Smooth entry animations
+ * - Current user position shown even if outside top 10
+ * - Accessibility support with proper ARIA labels
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <Leaderboard
+ *   data={topPlayers}
+ *   currentUserAddress="0x123..."
+ *   className="mt-8"
+ * />
+ * ```
+ * 
+ * @param {LeaderboardProps} props - Component props
+ * @returns {JSX.Element} Rendered leaderboard with rankings
+ */
 export function Leaderboard({ data, currentUserAddress, className = '' }: LeaderboardProps) {
   // Find current user's position if not in top 10
   const currentUserEntry = currentUserAddress 
