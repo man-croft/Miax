@@ -7,7 +7,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { WalletErrorType } from '@/utils/walletErrors';
 
 type ErrorVariant = 'error' | 'warning' | 'info' | 'success';
@@ -22,6 +22,12 @@ type ErrorDisplayProps = {
   showIcon?: boolean;
   autoDismiss?: boolean;
   dismissAfter?: number;
+  /** Show countdown timer for auto-dismiss */
+  showDismissTimer?: boolean;
+  /** Maximum retry attempts to show in UI */
+  maxRetryAttempts?: number;
+  /** Current retry attempt number */
+  retryAttempt?: number;
 };
 
 const variantStyles = {
@@ -68,22 +74,41 @@ export function ErrorDisplay({
   className = '',
   showIcon = true,
   autoDismiss = false,
-  dismissAfter = 5000
+  dismissAfter = 5000,
+  showDismissTimer = false,
+  maxRetryAttempts,
+  retryAttempt,
 }: ErrorDisplayProps) {
+  const [timeRemaining, setTimeRemaining] = useState(dismissAfter);
+  
   if (!error) return null;
 
   const styles = variantStyles[variant];
   const Icon = styles.icon;
 
-  // Auto-dismiss after specified time
+  // Auto-dismiss after specified time with countdown
   useEffect(() => {
     if (autoDismiss && onDismiss) {
+      const interval = showDismissTimer ? setInterval(() => {
+        setTimeRemaining(prev => {
+          if (prev <= 100) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 100;
+        });
+      }, 100) : undefined;
+      
       const timer = setTimeout(() => {
         onDismiss();
       }, dismissAfter);
-      return () => clearTimeout(timer);
+      
+      return () => {
+        clearTimeout(timer);
+        if (interval) clearInterval(interval);
+      };
     }
-  }, [autoDismiss, onDismiss, dismissAfter]);
+  }, [autoDismiss, onDismiss, dismissAfter, showDismissTimer]);
 
   const renderErrorContent = () => {
     if (typeof error === 'string') {
@@ -122,15 +147,30 @@ export function ErrorDisplay({
             {renderErrorContent()}
           </div>
           
+          {/* Show retry attempt counter */}
+          {maxRetryAttempts && retryAttempt !== undefined && (
+            <div className="mt-2 text-xs opacity-75">
+              Retry attempt {retryAttempt} of {maxRetryAttempts}
+            </div>
+          )}
+          
+          {/* Show auto-dismiss countdown */}
+          {showDismissTimer && autoDismiss && timeRemaining > 0 && (
+            <div className="mt-2 text-xs opacity-75">
+              Dismissing in {Math.ceil(timeRemaining / 1000)}s
+            </div>
+          )}
+          
           {(onRetry || onDismiss) && (
             <div className="mt-2 flex space-x-3">
               {onRetry && (
                 <button
                   type="button"
                   onClick={onRetry}
-                  className={`inline-flex items-center rounded-md ${styles.text} bg-transparent font-medium hover:opacity-80 focus:outline-none`}
+                  className={`inline-flex items-center rounded-md ${styles.text} bg-transparent font-medium hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-1`}
+                  aria-label="Retry operation"
                 >
-                  <ArrowPathIcon className="mr-1.5 h-4 w-4" />
+                  <ArrowPathIcon className="mr-1.5 h-4 w-4" aria-hidden="true" />
                   Try Again
                 </button>
               )}
@@ -138,7 +178,8 @@ export function ErrorDisplay({
                 <button
                   type="button"
                   onClick={onDismiss}
-                  className={`inline-flex items-center rounded-md ${styles.text} bg-transparent font-medium hover:opacity-80 focus:outline-none`}
+                  className={`inline-flex items-center rounded-md ${styles.text} bg-transparent font-medium hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-offset-1`}
+                  aria-label="Dismiss message"
                 >
                   Dismiss
                 </button>
