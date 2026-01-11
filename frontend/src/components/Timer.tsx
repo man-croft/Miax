@@ -4,14 +4,55 @@ import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { TimerProps } from '@/types/components';
 
+/**
+ * Extended timer props with additional control options
+ * @interface ExtendedTimerProps
+ * @extends {TimerProps}
+ */
 interface ExtendedTimerProps extends TimerProps {
+  /** Whether the timer should pause counting down */
   isPaused?: boolean;
+  /** Whether the timer should start automatically on mount */
   autoStart?: boolean;
 }
 
+/** Background color variants based on time remaining percentage */
 type TimerColor = 'bg-green-500' | 'bg-yellow-500' | 'bg-red-500';
+
+/** Text color variants based on time remaining percentage */
 type TextColor = 'text-green-600' | 'text-yellow-600' | 'text-red-600';
 
+/**
+ * Timer - A countdown timer component with visual progress indicator
+ * 
+ * Features:
+ * - Countdown timer with customizable duration
+ * - Dynamic color coding (green → yellow → red)
+ * - Visual progress bar
+ * - Pause/resume functionality
+ * - Auto-start option
+ * - Formatted time display (MM:SS)
+ * - Callback on timer completion
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <Timer
+ *   duration={60}
+ *   onTimeUp={() => handleTimeout()}
+ *   isPaused={false}
+ *   autoStart={true}
+ * />
+ * ```
+ * 
+ * Color thresholds:
+ * - Green: > 50% time remaining
+ * - Yellow: 25-50% time remaining
+ * - Red: < 25% time remaining
+ * 
+ * @param {ExtendedTimerProps} props - Component props
+ * @returns {JSX.Element} Rendered timer with progress indicator
+ */
 export default function Timer({
   duration,
   onTimeUp,
