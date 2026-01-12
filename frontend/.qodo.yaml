@@ -1,9 +1,9 @@
-# Qodo Configuration for Zali Frontend
+# Qodo Configuration for Miax Frontend
 # This configuration file defines how Qodo interacts with your Next.js + Web3 project
 
 # Project Information
 project:
-  name: "Zali Frontend"
+  name: "Miax Frontend"
   description: "Next.js frontend application with Celo and Web3 integration"
   type: "nextjs"
   language: "typescript"

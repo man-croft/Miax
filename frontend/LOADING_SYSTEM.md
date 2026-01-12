@@ -1,6 +1,6 @@
 # Loading Indicators System
 
-This document describes the comprehensive loading indicators system implemented in the Zali application.
+This document describes the comprehensive loading indicators system implemented in the Miax application.
 
 ## Overview
 

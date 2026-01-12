@@ -217,7 +217,7 @@ export default function GamePage() {
           className="text-center mb-8"
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
-            🎓 Zali
+            🎓 Miax
           </h1>
           <p className="text-gray-600">
             Answer all questions correctly to win cUSD rewards!

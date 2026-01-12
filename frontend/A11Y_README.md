@@ -1,6 +1,6 @@
-# Zali Accessibility Documentation
+# Miax Accessibility Documentation
 
-Welcome to Zali's comprehensive accessibility documentation. This guide helps developers, QA, and designers ensure the application meets WCAG 2.1 Level AA standards.
+Welcome to Miax's comprehensive accessibility documentation. This guide helps developers, QA, and designers ensure the application meets WCAG 2.1 Level AA standards.
 
 ## Quick Start
 
@@ -229,7 +229,7 @@ See [ACCESSIBILITY.md](./ACCESSIBILITY.md#common-issues-and-solutions) for more 
 
 ## Contributing
 
-When contributing to Zali:
+When contributing to Miax:
 
 1. Follow this accessibility guide
 2. Use patterns from [ARIA_PATTERNS.md](./ARIA_PATTERNS.md)
@@ -264,7 +264,7 @@ When contributing to Zali:
 
 ## Summary
 
-Zali is committed to accessibility. Every feature should be:
+Miax is committed to accessibility. Every feature should be:
 - **Keyboard navigable**
 - **Screen reader compatible**
 - **Visually clear**

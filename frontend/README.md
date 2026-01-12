@@ -1,6 +1,6 @@
-# Zali Frontend
+# Miax Frontend
 
-This is the frontend application for Zali, a Web3 trivia game built on Base network.
+This is the frontend application for Miax, a Web3 trivia game built on Base network.
 
 ## Features
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🎮 Zali - Web3 Trivia Game
+# 🎮 Miax - Web3 Trivia Game
 
 [![Base](https://img.shields.io/badge/Base-Mainnet-blue.svg)](https://base.org)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-orange.svg)](https://docs.soliditylang.org/)
@@ -18,7 +18,7 @@
 
 ## 🌟 Overview
 
-**Zali** is a next-generation Web3 trivia game that combines the excitement of knowledge challenges with blockchain-powered rewards. Built on Base's Layer 2 network, Zali delivers instant, gas-efficient gameplay where every correct answer earns you real cryptocurrency.
+**Miax** is a next-generation Web3 trivia game that combines the excitement of knowledge challenges with blockchain-powered rewards. Built on Base's Layer 2 network, Miax delivers instant, gas-efficient gameplay where every correct answer earns you real cryptocurrency.
 
 ### ✨ Key Features
 
@@ -59,7 +59,7 @@ graph LR
 ```bash
 # Clone the repository
 git clone https://github.com/man-croft/Miax.git
-cd Zali
+cd Miax
 
 # Install frontend dependencies
 cd frontend
@@ -109,10 +109,10 @@ Visit `http://localhost:3000` and connect your wallet to start playing!
 **Network:** Base Mainnet (Chain ID: 8453)  
 **Deployed:** December 14, 2024
 
-| Contract | Address | Explorer |
-|----------|---------|----------|
+| Contract             | Address                                      | Explorer                                                                                    |
+| -------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | **SimpleTriviaGame** | `0x7409Cbcb6577164E96A9b474efD4C32B9e17d59d` | [View on BaseScan](https://basescan.org/address/0x7409Cbcb6577164E96A9b474efD4C32B9e17d59d) |
-| **USDC Token** | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | [View on BaseScan](https://basescan.org/token/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913) |
+| **USDC Token**       | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | [View on BaseScan](https://basescan.org/token/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913)   |
 
 ### Contract Metrics
 
@@ -128,7 +128,7 @@ Visit `http://localhost:3000` and connect your wallet to start playing!
 
 ### System Overview
 
-Zali follows a modern Web3 architecture with on-chain game logic and a decentralized frontend interface.
+Miax follows a modern Web3 architecture with on-chain game logic and a decentralized frontend interface.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -202,7 +202,7 @@ function submitAnswer(
 function withdrawTokens(uint256 _amount) external onlyOwner
 
 // View question details
-function getQuestion(uint256 _questionId) 
+function getQuestion(uint256 _questionId)
     external view returns (
         string memory questionText,
         string[] memory options,
@@ -233,28 +233,28 @@ event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, 
 
 ### Blockchain & Smart Contracts
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Solidity** | 0.8.20 | Smart contract language |
-| **Foundry** | Latest | Development framework & testing |
-| **OpenZeppelin** | 5.0+ | Security-audited contract libraries |
-| **Base L2** | Mainnet | Layer 2 blockchain network |
-| **USDC** | ERC20 | Reward token |
+| Technology       | Version | Purpose                             |
+| ---------------- | ------- | ----------------------------------- |
+| **Solidity**     | 0.8.20  | Smart contract language             |
+| **Foundry**      | Latest  | Development framework & testing     |
+| **OpenZeppelin** | 5.0+    | Security-audited contract libraries |
+| **Base L2**      | Mainnet | Layer 2 blockchain network          |
+| **USDC**         | ERC20   | Reward token                        |
 
 ### Frontend
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Next.js** | 14 | React framework with App Router |
-| **React** | 18 | UI library |
-| **TypeScript** | 5.0 | Type-safe JavaScript |
-| **Wagmi** | 2.x | React hooks for Ethereum |
-| **Viem** | 2.x | TypeScript Ethereum library |
-| **Reown AppKit** | Latest | WalletConnect v2 integration |
-| **TailwindCSS** | 3.x | Utility-first CSS framework |
-| **Framer Motion** | 11.x | Animation library |
-| **React Hot Toast** | 2.x | Toast notifications |
-| **Zustand** | 4.x | State management |
+| Technology          | Version | Purpose                         |
+| ------------------- | ------- | ------------------------------- |
+| **Next.js**         | 14      | React framework with App Router |
+| **React**           | 18      | UI library                      |
+| **TypeScript**      | 5.0     | Type-safe JavaScript            |
+| **Wagmi**           | 2.x     | React hooks for Ethereum        |
+| **Viem**            | 2.x     | TypeScript Ethereum library     |
+| **Reown AppKit**    | Latest  | WalletConnect v2 integration    |
+| **TailwindCSS**     | 3.x     | Utility-first CSS framework     |
+| **Framer Motion**   | 11.x    | Animation library               |
+| **React Hot Toast** | 2.x     | Toast notifications             |
+| **Zustand**         | 4.x     | State management                |
 
 ### Development Tools
 
@@ -269,7 +269,7 @@ event AnswerSubmitted(address indexed user, uint256 questionId, bool isCorrect, 
 ## 📁 Project Structure
 
 ```
-Zali/
+Miax/
 ├── contracts/                      # Smart contract workspace
 │   ├── src/
 │   │   ├── SimpleTriviaGame.sol   # Main game contract
@@ -349,15 +349,16 @@ Zali/
 
 ### Scoring System
 
-| Action | Reward |
-|--------|--------|
-| **Correct Answer** | +1 to user score |
-| **USDC Reward** | 0.1 USDC per correct answer |
-| **Incorrect Answer** | No penalty, no reward |
+| Action               | Reward                      |
+| -------------------- | --------------------------- |
+| **Correct Answer**   | +1 to user score            |
+| **USDC Reward**      | 0.1 USDC per correct answer |
+| **Incorrect Answer** | No penalty, no reward       |
 
 ### Question Categories
 
 Questions are organized by difficulty and category:
+
 - General Knowledge
 - Science & Technology
 - History & Geography
@@ -508,6 +509,7 @@ frontend/src/__tests__/
 #### Step 1: Prepare Your Environment
 
 Ensure you have:
+
 - Base ETH for deployment gas fees
 - USDC tokens to fund the contract reward pool
 - Private key with funds in `.env`
@@ -584,7 +586,7 @@ npm run build
 npm run start
 
 # Or use PM2 for process management
-pm2 start npm --name "zali" -- start
+pm2 start npm --name "Miax" -- start
 ```
 
 #### Option 3: Docker
@@ -605,8 +607,8 @@ CMD ["npm", "start"]
 
 ```bash
 # Build and run
-docker build -t zali-frontend .
-docker run -p 3000:3000 zali-frontend
+docker build -t Miax-frontend .
+docker run -p 3000:3000 Miax-frontend
 ```
 
 ### Post-Deployment Checklist
@@ -629,6 +631,7 @@ docker run -p 3000:3000 zali-frontend
 ### Smart Contract Security Measures
 
 #### Access Control
+
 - **Ownable Pattern**: Critical functions restricted to contract owner
 - **Immutable Variables**: USDC token address set at deployment, cannot be changed
 - **Input Validation**: All user inputs validated before processing
@@ -655,7 +658,7 @@ modifier onlyOwner() {        // Restricts sensitive functions
 ✅ **Input Validation** - Validates all question options and indices  
 ✅ **Custom Errors** - Gas-efficient error handling  
 ✅ **Event Logging** - Complete audit trail of all actions  
-✅ **Bounds Checking** - Prevents array out-of-bounds errors  
+✅ **Bounds Checking** - Prevents array out-of-bounds errors
 
 ### Frontend Security
 
@@ -665,7 +668,7 @@ All user inputs are sanitized to prevent XSS and injection attacks:
 
 ```typescript
 // Username sanitization
-import { sanitizeUsername } from '@/utils/sanitize';
+import { sanitizeUsername } from "@/utils/sanitize";
 
 const cleanUsername = sanitizeUsername(rawInput);
 // Only allows: alphanumeric + underscore, max 20 chars
@@ -674,12 +677,15 @@ const cleanUsername = sanitizeUsername(rawInput);
 #### Form Validation
 
 ```typescript
-import { useSanitizedForm } from '@/hooks/useSanitizedForm';
-import { z } from 'zod';
+import { useSanitizedForm } from "@/hooks/useSanitizedForm";
+import { z } from "zod";
 
 const schema = z.object({
-  username: z.string().min(3).max(20)
-    .regex(/^[a-zA-Z0-9_]+$/, 'Invalid characters'),
+  username: z
+    .string()
+    .min(3)
+    .max(20)
+    .regex(/^[a-zA-Z0-9_]+$/, "Invalid characters"),
 });
 
 const form = useSanitizedForm(schema);
@@ -719,11 +725,11 @@ We appreciate responsible disclosure and will credit researchers in our security
 
 The SimpleTriviaGame contract is optimized for minimal gas usage:
 
-| Operation | Gas Cost (Approx) |
-|-----------|-------------------|
-| Add Question | ~120,000 gas |
-| Submit Answer | ~80,000 gas |
-| First Answer | ~95,000 gas (includes storage init) |
+| Operation     | Gas Cost (Approx)                   |
+| ------------- | ----------------------------------- |
+| Add Question  | ~120,000 gas                        |
+| Submit Answer | ~80,000 gas                         |
+| First Answer  | ~95,000 gas (includes storage init) |
 
 ### Frontend Performance
 
@@ -739,10 +745,10 @@ The SimpleTriviaGame contract is optimized for minimal gas usage:
 // Progressive enhancement
 <Suspense fallback={<LoadingSpinner />}>
   <GameComponent />
-</Suspense>
+</Suspense>;
 
 // Lazy loading
-const Leaderboard = dynamic(() => import('./Leaderboard'), {
+const Leaderboard = dynamic(() => import("./Leaderboard"), {
   loading: () => <Skeleton />,
 });
 ```
@@ -765,31 +771,36 @@ We welcome contributions from the community! Here's how you can help:
 ### Development Workflow
 
 1. **Fork the repository**
+
    ```bash
    gh repo fork man-croft/Miax
    ```
 
 2. **Create a feature branch**
+
    ```bash
    git checkout -b feat/your-feature-name
    ```
 
 3. **Make your changes**
+
    - Write clean, readable code
    - Follow existing code style
    - Add tests for new features
    - Update documentation as needed
 
 4. **Test your changes**
+
    ```bash
    # Frontend tests
    cd frontend && npm run test
-   
+
    # Contract tests
    cd contracts && forge test
    ```
 
 5. **Commit with conventional commits**
+
    ```bash
    git commit -m "feat: add new question category"
    git commit -m "fix: resolve reward calculation bug"
@@ -837,7 +848,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2024-2026 Zali Team
+Copyright (c) 2024-2026 Miax Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -867,7 +878,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 ### Community
 
-- 🐦 **Twitter**: [@ZaliGame](https://twitter.com/ZaliGame) (example)
+- 🐦 **Twitter**: [@MiaxGame](https://twitter.com/MiaxGame) (example)
 - 💬 **Discord**: [Join our server](#) (example)
 - 📱 **Telegram**: [Join community](#) (example)
 
@@ -884,6 +895,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 ## 🎯 Roadmap
 
 ### Current Version (v1.0)
+
 - ✅ SimpleTriviaGame contract deployed
 - ✅ USDC reward system
 - ✅ Web3 wallet integration
@@ -891,6 +903,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 - ✅ Question management system
 
 ### Upcoming Features (v1.1)
+
 - 🔄 Chainlink VRF integration for random questions
 - 📊 Enhanced leaderboard with weekly rewards
 - 🎨 Additional UI themes
@@ -898,6 +911,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 - 🌍 Multi-language support
 
 ### Future Plans (v2.0)
+
 - 🎮 Multiplayer mode
 - 🏆 Tournament system
 - 🎁 NFT rewards for achievements
@@ -918,7 +932,7 @@ Built with amazing open-source tools:
 - [TailwindCSS](https://tailwindcss.com/) - Utility-first CSS
 - [Framer Motion](https://www.framer.com/motion/) - Animation library
 
-Special thanks to all contributors who have helped improve Zali!
+Special thanks to all contributors who have helped improve Miax!
 
 ---
 
@@ -935,7 +949,7 @@ If you find this project useful, please consider:
 
 <div align="center">
 
-**Built with ❤️ by the Zali Team**
+**Built with ❤️ by the Miax Team**
 
 [Website](#) • [Documentation](#) • [Twitter](#) • [Discord](#)
 

@@ -1,10 +1,10 @@
 # Accessibility (a11y) Guide
 
-This document describes the accessibility features and best practices implemented throughout the Zali application.
+This document describes the accessibility features and best practices implemented throughout the Miax application.
 
 ## Overview
 
-Zali is committed to providing an accessible experience for all users, including those with disabilities. We follow the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA and continuously work to improve accessibility.
+Miax is committed to providing an accessible experience for all users, including those with disabilities. We follow the Web Content Accessibility Guidelines (WCAG) 2.1 at Level AA and continuously work to improve accessibility.
 
 ## Key Accessibility Features
 
@@ -78,7 +78,7 @@ The application uses semantic HTML elements for better structure:
 **Navigation**: `<nav>` and `<Link>` components
 
 **Headings**: Proper heading hierarchy (h1 → h6)
-- h1: Page titles (e.g., "Zali: Learn, Play, Earn")
+- h1: Page titles (e.g., "Miax: Learn, Play, Earn")
 - h2: Section headings
 - h3: Subsection headings
 
@@ -337,7 +337,7 @@ Accessibility is an ongoing process. We:
 
 ## Contributing
 
-When contributing to Zali:
+When contributing to Miax:
 1. Follow the accessibility practices outlined
 2. Test new components with keyboard and screen reader
 3. Ensure color contrast is sufficient

@@ -1,6 +1,6 @@
 # TypeScript Type Safety System
 
-This document describes the comprehensive TypeScript type safety system implemented in the Zali application.
+This document describes the comprehensive TypeScript type safety system implemented in the Miax application.
 
 ## Overview
 

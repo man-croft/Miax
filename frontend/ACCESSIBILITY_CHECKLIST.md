@@ -1,6 +1,6 @@
 # Accessibility Checklist
 
-Use this checklist when developing new features or components for Zali.
+Use this checklist when developing new features or components for Miax.
 
 ## Before Development
 

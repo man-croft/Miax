@@ -1,6 +1,6 @@
 # Accessibility Testing Guide
 
-Comprehensive guide for testing Zali's accessibility features.
+Comprehensive guide for testing Miax's accessibility features.
 
 ## Automated Testing
 

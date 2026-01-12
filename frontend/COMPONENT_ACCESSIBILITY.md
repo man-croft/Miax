@@ -1,6 +1,6 @@
 # Component Accessibility Guide
 
-Detailed accessibility requirements for each component in Zali.
+Detailed accessibility requirements for each component in Miax.
 
 ## Navbar
 

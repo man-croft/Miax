@@ -169,7 +169,7 @@ export default function SignInPage() {
           className="text-center"
         >
           <h1 className="text-3xl font-bold text-gray-900 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Welcome to Zali
+            Welcome to Miax
           </h1>
           <p className="mt-2 text-sm text-gray-600" role="status" aria-live="polite">
             {getStatusMessage()}

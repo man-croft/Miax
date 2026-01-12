@@ -1,6 +1,6 @@
 # ARIA Patterns and Examples
 
-Common ARIA patterns used throughout Zali for accessibility.
+Common ARIA patterns used throughout Miax for accessibility.
 
 ## Buttons and Controls
 

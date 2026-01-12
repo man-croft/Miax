@@ -17,7 +17,7 @@ export const useStore = create<RootState>()(
         ...createUISlice(...a),
       })),
       {
-        name: 'zali-store',
+        name: 'Miax-store',
         partialize: (state) => ({
           auth: {
             user: state.user,
