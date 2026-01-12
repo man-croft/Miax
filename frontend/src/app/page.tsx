@@ -16,7 +16,7 @@ export default function Home() {
               transition={{ duration: 0.5 }}
             >
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent mb-6">
-                Zali: Learn, Play, Earn
+                Miax: Learn, Play, Earn
               </h1>
               <p className="text-xl sm:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto">
                 Learn about Celo & DeFi while earning real cUSD rewards via MiniPay

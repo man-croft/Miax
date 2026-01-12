@@ -121,9 +121,9 @@ export default function Navbar({ className = '', 'data-testid': testId }: Navbar
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="/" aria-label="Zali Home">
+            <Link href="/" aria-label="Miax Home">
               <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-green-600 to-yellow-500 bg-clip-text text-transparent cursor-pointer">
-                🎓 Zali
+                🎓 Miax
               </h1>
             </Link>
           </div>

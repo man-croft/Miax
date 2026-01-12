@@ -2,7 +2,7 @@
 
 ## Component Error Handling Standards
 
-This guide outlines the standards for implementing error boundaries across all components in the Zali application.
+This guide outlines the standards for implementing error boundaries across all components in the Miax application.
 
 ## Error Boundary Placement Rules
 

@@ -12,9 +12,9 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Zali - Learn, Play, Earn",
+  title: "Miax - Learn, Play, Earn",
   description: "Educational play-to-earn trivia game on Base. Learn about blockchain while earning ETH rewards.",
-  keywords: "Zali, Base, trivia, play-to-earn, blockchain, education, ETH",
+  keywords: "Miax, Base, trivia, play-to-earn, blockchain, education, ETH",
   viewport: "width=device-width, initial-scale=1",
 };
 

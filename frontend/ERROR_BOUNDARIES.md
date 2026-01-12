@@ -1,6 +1,6 @@
 # Error Boundary System
 
-This document describes the comprehensive error boundary system implemented in the Zali application.
+This document describes the comprehensive error boundary system implemented in the Miax application.
 
 ## Overview
 

@@ -44,7 +44,7 @@ describe('Navbar', () => {
     const { getByText } = render(<Navbar />);
     
     // Check if logo is rendered
-    expect(getByText('🎓 Zali')).toBeInTheDocument();
+    expect(getByText('🎓 Miax')).toBeInTheDocument();
     
     // Check if navigation links are rendered
     expect(getByText('Home')).toBeInTheDocument();
